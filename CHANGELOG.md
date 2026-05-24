@@ -6,7 +6,7 @@ KACE uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-## [Unreleased]
+## [0.9.0] — 2026-05-24
 
 ### Added
 - `--full-klipper-sweep` flag: clones Klipper shallowly and validates all 192+ official configs
@@ -20,10 +20,18 @@ KACE uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `docs/en/TESTING.md`: test suite usage, snapshot system, CI workflow
 - `docs/en/CONTRIBUTING.md`: board addition guide, PR checklist
 - `.github/workflows/ci.yml`: full GitHub Actions CI pipeline with concurrency cancellation
+- Full sweep runner and results summary (`SWEEP_RESULTS.md`)
+- `tests/sweep/full_sweep_runner.py` and `tests/sweep/last_sweep_report.txt`
 
 ### Changed
 - `tests/run_tests.py`: added `--yaml-check` and `--full-klipper-sweep` flags; improved help text
 - `kace.py`: `--version` flag now reads from `VERSION` file; `__version__` kept in sync
+- Added timeouts to network requests in scraper
+
+### Fixed
+- Pathing issues in generator, deployer, and test_derivation
+- Wizard navigation step 0 bug
+- Dashboard banner version display
 
 ---
 
@@ -50,5 +58,6 @@ KACE uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - ANSI colour-coded terminal UI with emoji icon menus
 - Validated against 192 official Klipper board configurations
 
-[Unreleased]: https://github.com/3D-uy/kace/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/3D-uy/kace/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/3D-uy/kace/compare/v0.1.0...v0.9.0
 [0.1.0]: https://github.com/3D-uy/kace/releases/tag/v0.1.0
