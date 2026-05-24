@@ -23,9 +23,8 @@ vMAJOR.MINOR.PATCH
 
 | Version | Goal |
 |---------|------|
-| `v0.1.x` | Production hardening — CI, snapshots, release engineering |
-| `v0.2.0` | Stable YAML schema freeze + Moonraker API integration |
-| `v1.0.0` | Proven real-world usage, stable upgrade path, frozen schema |
+| `v0.9.x` | Release candidates, full Klipper sweep validation, hardware DB expansion |
+| `v1.0.0` | Stable production release, frozen schema, Moonraker API integration |
 
 ---
 
@@ -46,7 +45,7 @@ All jobs must pass with zero FAILUREs before tagging.
 Edit the `VERSION` file (single line, no `v` prefix):
 
 ```
-0.2.0
+1.0.0
 ```
 
 `kace.py` reads this file at startup — no other change needed.
@@ -56,7 +55,7 @@ Edit the `VERSION` file (single line, no `v` prefix):
 Move items from `[Unreleased]` into a new dated section:
 
 ```markdown
-## [0.2.0] — YYYY-MM-DD
+## [1.0.0] — YYYY-MM-DD
 
 ### Added
 - …
@@ -68,23 +67,23 @@ Move items from `[Unreleased]` into a new dated section:
 Add the comparison link at the bottom:
 
 ```markdown
-[0.2.0]: https://github.com/3D-uy/kace/compare/v0.1.0...v0.2.0
+[1.0.0]: https://github.com/3D-uy/kace/compare/v0.9.0...v1.0.0
 ```
 
 ### Step 4 — Commit and tag
 
 ```bash
 git add VERSION CHANGELOG.md
-git commit -m "chore: release v0.2.0"
-git tag -a v0.2.0 -m "Release v0.2.0"
+git commit -m "chore: release v1.0.0"
+git tag -a v1.0.0 -m "Release v1.0.0"
 git push origin main --tags
 ```
 
 ### Step 5 — Create GitHub Release
 
 On GitHub → Releases → Draft a new release:
-- Tag: `v0.2.0`
-- Title: `KACE v0.2.0`
+- Tag: `v1.0.0`
+- Title: `KACE v1.0.0`
 - Body: paste the CHANGELOG section for this version
 
 ---
@@ -97,13 +96,13 @@ Users can install or revert to any tagged release:
 
 ```bash
 git fetch --tags
-git checkout v0.1.0
+git checkout v0.9.0
 ```
 
 Or the installer can be pointed at a specific tag:
 
 ```bash
-git clone --depth 1 --branch v0.1.0 https://github.com/3D-uy/kace.git
+git clone --depth 1 --branch v0.9.0 https://github.com/3D-uy/kace.git
 ```
 
 ### Option B — Revert a bad commit on main
@@ -122,11 +121,11 @@ Then cut a PATCH release immediately.
 For urgent production fixes:
 
 ```bash
-git checkout -b hotfix/v0.1.1 v0.1.0
+git checkout -b hotfix/v0.9.1 v0.9.0
 # apply fix
 git commit -m "fix: ..."
-git tag -a v0.1.1 -m "Hotfix v0.1.1"
-git push origin hotfix/v0.1.1 --tags
+git tag -a v0.9.1 -m "Hotfix v0.9.1"
+git push origin hotfix/v0.9.1 --tags
 ```
 
 Then merge back to `main`.

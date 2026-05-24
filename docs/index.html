@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KACE — Project Dashboard</title>
-    <meta name="description" content="KACE v0.1.0 — Klipper Automated Configuration Ecosystem. Architecture overview, module system, roadmap, and contributor reference.">
+    <meta name="description" content="KACE v0.9.0 — Klipper Automated Configuration Ecosystem. Architecture overview, module system, roadmap, and contributor reference.">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -27,9 +27,10 @@
                 <a href="#analysis" class="nav-link">Install Size</a>
                 <a href="#architecture" class="nav-link">Architecture</a>
                 <a href="#modules" class="nav-link">Modules</a>
+                <a href="#sweep" class="nav-link">Sweep Results</a>
                 <a href="#roadmap" class="nav-link">Roadmap</a>
             </nav>
-            <span class="version-badge">v0.1.0</span>
+            <span class="version-badge">v0.9.0</span>
         </div>
     </header>
 
@@ -41,15 +42,15 @@
                 <p class="hero-desc">Data-driven firmware configuration, modular hardware database, automated test infrastructure — all without breaking the workflow that already works.</p>
                 <div class="hero-stats">
                     <div class="stat-card">
-                        <span class="stat-number" data-target="180">0</span><span class="stat-unit">KB</span>
+                        <span class="stat-number" data-target="290">0</span><span class="stat-unit">KB</span>
                         <span class="stat-label">Optimized Runtime</span>
                     </div>
                     <div class="stat-card highlight">
-                        <span class="stat-number" data-target="60">0</span><span class="stat-unit">%</span>
+                        <span class="stat-number" data-target="95">0</span><span class="stat-unit">%</span>
                         <span class="stat-label">Install Size Reduction</span>
                     </div>
                     <div class="stat-card">
-                        <span class="stat-number" data-target="22">0</span><span class="stat-unit"></span>
+                        <span class="stat-number" data-target="32">0</span><span class="stat-unit"></span>
                         <span class="stat-label">Runtime Files</span>
                     </div>
                     <div class="stat-card">
@@ -73,17 +74,17 @@
                     </div>
                     <div class="size-bar-container">
                         <div class="size-bar full" style="--width: 100%">
-                            <span>~555+ KB + Git History</span>
+                            <span>~5.8 MB + Git History</span>
                         </div>
                     </div>
                     <ul class="file-list">
-                        <li class="included"><span class="dot"></span>core/ <span class="size">~102 KB</span></li>
+                        <li class="included"><span class="dot"></span>core/ <span class="size">~137 KB</span></li>
                         <li class="included"><span class="dot"></span>firmware/ <span class="size">~26 KB</span></li>
-                        <li class="included"><span class="dot"></span>data/ <span class="size">~6.7 KB</span></li>
+                        <li class="included"><span class="dot"></span>data/ <span class="size">~17 KB</span></li>
                         <li class="included"><span class="dot"></span>templates/ <span class="size">~25 KB</span></li>
-                        <li class="included"><span class="dot"></span>kace.py + install.sh <span class="size">~21 KB</span></li>
-                        <li class="wasted"><span class="dot"></span>docs/ + assets/ <span class="size">~330+ KB</span></li>
-                        <li class="wasted"><span class="dot"></span>tests/ (dev-only) <span class="size">~45 KB</span></li>
+                        <li class="included"><span class="dot"></span>kace.py + install.sh <span class="size">~26 KB</span></li>
+                        <li class="wasted"><span class="dot"></span>docs/ + assets/ <span class="size">~5.5 MB</span></li>
+                        <li class="wasted"><span class="dot"></span>tests/ (dev-only) <span class="size">~120 KB</span></li>
                         <li class="wasted"><span class="dot"></span>Full Git History <span class="size">Variable</span></li>
                     </ul>
                 </div>
@@ -94,16 +95,16 @@
                         <span class="badge success">Runtime Only</span>
                     </div>
                     <div class="size-bar-container">
-                        <div class="size-bar optimized" style="--width: 40%">
-                            <span>~180 KB</span>
+                        <div class="size-bar optimized" style="--width: 5%">
+                            <span>~290 KB</span>
                         </div>
                     </div>
                     <ul class="file-list">
-                        <li class="included"><span class="dot"></span>core/ <span class="size">~102 KB</span></li>
+                        <li class="included"><span class="dot"></span>core/ <span class="size">~137 KB</span></li>
                         <li class="included"><span class="dot"></span>firmware/ <span class="size">~26 KB</span></li>
-                        <li class="included"><span class="dot"></span>data/ <span class="size">~6.7 KB</span></li>
+                        <li class="included"><span class="dot"></span>data/ <span class="size">~17 KB</span></li>
                         <li class="included"><span class="dot"></span>templates/ <span class="size">~25 KB</span></li>
-                        <li class="included"><span class="dot"></span>kace.py + install.sh <span class="size">~21 KB</span></li>
+                        <li class="included"><span class="dot"></span>kace.py + install.sh <span class="size">~26 KB</span></li>
                         <li class="excluded"><span class="dot"></span>docs/ — excluded <span class="tag">sparse</span></li>
                         <li class="excluded"><span class="dot"></span>tests/ — excluded <span class="tag">sparse</span></li>
                         <li class="excluded"><span class="dot"></span>Git History — excluded <span class="tag">--depth 1</span></li>
@@ -120,24 +121,26 @@
                 <div class="tree-view">
                     <div class="tree-header">📁 ~/kace/</div>
                     <div class="tree-node root">
-                        <div class="tree-item file entry">kace.py <span class="tag green">Entry Point</span> <span class="size">14.7 KB</span></div>
-                        <div class="tree-item file">install.sh <span class="tag blue">Bootstrap</span> <span class="size">5.8 KB</span></div>
+                        <div class="tree-item file entry">kace.py <span class="tag green">Entry Point</span> <span class="size">20.1 KB</span></div>
+                        <div class="tree-item file">install.sh <span class="tag blue">Bootstrap</span> <span class="size">6.0 KB</span></div>
                         <div class="tree-item file">requirements.txt <span class="size">314 B</span></div>
-                        <div class="tree-item file">VERSION <span class="size">6 B</span></div>
-                        <div class="tree-item file">CHANGELOG.md <span class="size">2.9 KB</span></div>
+                        <div class="tree-item file">VERSION <span class="size">7 B</span></div>
+                        <div class="tree-item file">CHANGELOG.md <span class="size">3.4 KB</span></div>
 
                         <!-- core/ -->
                         <div class="tree-folder">
                             <div class="tree-item folder">📂 core/ <span class="tag green">Runtime Core</span></div>
                             <div class="tree-children">
                                 <div class="tree-item file">banner.py <span class="size">2.1 KB</span></div>
-                                <div class="tree-item file">dashboard.py <span class="size">8.9 KB</span></div>
-                                <div class="tree-item file">deployer.py <span class="size">9.2 KB</span></div>
-                                <div class="tree-item file">generator.py <span class="size">4.1 KB</span></div>
+                                <div class="tree-item file">dashboard.py <span class="size">9.3 KB</span></div>
+                                <div class="tree-item file">deployer.py <span class="size">9.6 KB</span></div>
+                                <div class="tree-item file">display_checker.py <span class="size">15.1 KB</span></div>
+                                <div class="tree-item file">generator.py <span class="size">5.2 KB</span></div>
+                                <div class="tree-item file">macro_generator.py <span class="size">2.1 KB</span></div>
                                 <div class="tree-item file">scraper.py <span class="size">13.7 KB</span></div>
                                 <div class="tree-item file">style.py <span class="size">1.2 KB</span></div>
-                                <div class="tree-item file">translations.py <span class="size">48.8 KB</span></div>
-                                <div class="tree-item file">wizard.py <span class="size">14.1 KB</span></div>
+                                <div class="tree-item file">translations.py <span class="size">58.9 KB</span></div>
+                                <div class="tree-item file">wizard.py <span class="size">20.0 KB</span></div>
                             </div>
                         </div>
 
@@ -147,8 +150,8 @@
                             <div class="tree-children">
                                 <div class="tree-item file">__init__.py <span class="size">0.4 KB</span></div>
                                 <div class="tree-item file">builder.py <span class="size">8.2 KB</span></div>
-                                <div class="tree-item file">derivation.py <span class="size">8.9 KB</span></div>
-                                <div class="tree-item file">detector.py <span class="size">4.4 KB</span></div>
+                                <div class="tree-item file">derivation.py <span class="size">9.1 KB</span></div>
+                                <div class="tree-item file">detector.py <span class="size">4.5 KB</span></div>
                                 <div class="tree-item file">generator.py <span class="size">0.9 KB</span></div>
                                 <div class="tree-item file">prompts.py <span class="size">1.6 KB</span></div>
                                 <div class="tree-item file">validator.py <span class="size">1.5 KB</span></div>
@@ -159,8 +162,9 @@
                         <div class="tree-folder">
                             <div class="tree-item folder">📂 data/ <span class="tag yellow">Hardware DB</span></div>
                             <div class="tree-children">
-                                <div class="tree-item file">boards.yaml <span class="tag yellow">MCU + BLTouch + FW DB</span> <span class="size">6.2 KB</span></div>
-                                <div class="tree-item file">overrides.yaml <span class="size">151 B</span></div>
+                                <div class="tree-item file">boards.yaml <span class="tag yellow">MCU + BLTouch + FW DB</span> <span class="size">6.9 KB</span></div>
+                                <div class="tree-item file">displays.yaml <span class="tag yellow">Display DB</span> <span class="size">9.9 KB</span></div>
+                                <div class="tree-item file">overrides.yaml <span class="size">146 B</span></div>
                                 <div class="tree-item file">profiles.py <span class="size">199 B</span></div>
                             </div>
                         </div>
@@ -169,7 +173,7 @@
                         <div class="tree-folder">
                             <div class="tree-item folder">📂 templates/ <span class="tag green">Runtime</span></div>
                             <div class="tree-children">
-                                <div class="tree-item file">printer.cfg.j2 <span class="size">24.7 KB</span></div>
+                                <div class="tree-item file">printer.cfg.j2 <span class="size">24.8 KB</span></div>
                             </div>
                         </div>
 
@@ -178,9 +182,9 @@
                             <div class="tree-item folder">📂 tests/ <span class="tag purple">Dev / CI Only</span></div>
                             <div class="tree-children">
                                 <div class="tree-item file dim">run_tests.py, kace_test_case.py</div>
-                                <div class="tree-item file dim">unit/ — test_deployer, test_derivation, test_scraper, test_yaml_db</div>
+                                <div class="tree-item file dim">unit/ — test_deployer, test_derivation, test_display_checker, test_scraper, test_stock_validation, test_yaml_db</div>
                                 <div class="tree-item file dim">regression/ — test_config_generation, test_snapshot_expansion</div>
-                                <div class="tree-item file dim">sweep/ — klipper_sweep, result_codes</div>
+                                <div class="tree-item file dim">sweep/ — full_sweep_runner, klipper_sweep, result_codes, last_sweep_report.txt</div>
                                 <div class="tree-item file dim">fixtures/ — 7 golden config snapshots</div>
                             </div>
                         </div>
@@ -197,9 +201,9 @@
                         <div class="tree-folder excluded-tree">
                             <div class="tree-item folder">📂 docs/ <span class="tag red">Excluded from Install</span></div>
                             <div class="tree-children">
-                                <div class="tree-item file dim">PRD.md, RELEASE.md, assets/</div>
-                                <div class="tree-item file dim">en/ — ARCHITECTURE, CONTRIBUTING, TESTING, Klipper_install, pi_imager</div>
-                                <div class="tree-item file dim">es/ pt/ — README, Klipper_install, pi_imager</div>
+                                <div class="tree-item file dim">RELEASE.md, assets/</div>
+                                <div class="tree-item file dim">en/ — ARCHITECTURE, CONTRIBUTING, DISPLAYS, TESTING, Klipper_install, pi_imager</div>
+                                <div class="tree-item file dim">es/ pt/ — README, CONTRIBUTING, DISPLAYS, TESTING, Klipper_install, pi_imager</div>
                                 <div class="tree-item file dim">index.html, app.js, style.css (this dashboard)</div>
                             </div>
                         </div>
@@ -257,6 +261,69 @@
                     <p>Fluidd web interface detection and configuration</p>
                     <span class="module-status planned">Future</span>
                 </div>
+            </div>
+        </section>
+
+        <!-- Sweep Section -->
+        <section id="sweep" class="section">
+            <h2 class="section-title">📊 Automated Sweep Validation</h2>
+            <p class="section-desc">KACE is validated against the <strong>100% complete official Klipper configuration library</strong> (192 configs) via its automated sweep engine.</p>
+            
+            <div class="hero-stats" style="margin-bottom: 3rem;">
+                <div class="stat-card highlight" style="border-color: rgba(46, 232, 154, 0.4);">
+                    <span class="stat-number" data-target="172">0</span>
+                    <span class="stat-label" style="color: var(--accent-green);">✅ PASS (89.6%)</span>
+                </div>
+                <div class="stat-card" style="border-color: rgba(59, 130, 246, 0.4);">
+                    <span class="stat-number" data-target="20">0</span>
+                    <span class="stat-label" style="color: var(--accent-blue);">🔵 UNSUPPORTED (10.4%)</span>
+                </div>
+                <div class="stat-card" style="border-color: rgba(245, 166, 35, 0.4);">
+                    <span class="stat-number" data-target="10">0</span>
+                    <span class="stat-label" style="color: var(--accent-amber);">⚠️ WARNINGS (Delta)</span>
+                </div>
+                <div class="stat-card" style="border-color: rgba(239, 68, 68, 0.4);">
+                    <span class="stat-number" data-target="0">0</span>
+                    <span class="stat-label" style="color: var(--accent-red);">🔴 CRASHES / FAILURES</span>
+                </div>
+            </div>
+
+            <div class="analysis-grid">
+                <div class="analysis-card">
+                    <div class="card-header">
+                        <span class="card-icon">🔵</span>
+                        <h3>Unsupported Configs</h3>
+                        <span class="badge" style="background: rgba(59, 130, 246, 0.15); color: var(--accent-blue);">Expected</span>
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                        20 configurations utilize hardware components that are intentionally out of KACE's scope (e.g. RGB/Neopixel chains, ADXL345 accelerometers, or SX1509 GPIO expanders).
+                    </p>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">
+                        KACE identifies these features and aborts generation gracefully for those sections rather than throwing errors, preserving complete safety.
+                    </p>
+                </div>
+                <div class="analysis-card">
+                    <div class="card-header">
+                        <span class="card-icon">⚠️</span>
+                        <h3>Delta Geometry Warnings</h3>
+                        <span class="badge" style="background: rgba(245, 166, 35, 0.15); color: var(--accent-amber);">Safe Guard</span>
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                        10 configurations parse perfectly but trigger warnings due to Klipper's official source files shipping with placeholder <code>TODO</code> pins (especially Delta printers which require manual physical measurements).
+                    </p>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">
+                        KACE's compiler gates safety-check these pins and prompt the developer during the interactive CLI wizard.
+                    </p>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 3rem;">
+                <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.2rem;">
+                    Full sweep conducted on KACE v0.9.0 against Klipper master config branch.
+                </p>
+                <a href="../SWEEP_RESULTS.md" class="btn-primary" target="_blank">
+                    📄 View Complete Per-Config Sweep Report (SWEEP_RESULTS.md)
+                </a>
             </div>
         </section>
 
@@ -349,6 +416,8 @@
             <p class="section-desc">Hardware and compatibility tests required before any release — click to mark complete</p>
             <div class="validation-grid">
                 <div class="check-item"><span class="check">☐</span> Run full test suite — <code>python3 tests/run_tests.py</code></div>
+                <div class="check-item"><span class="check">☐</span> Validate hardware database schema — <code>python3 tests/run_tests.py --yaml-check</code></div>
+                <div class="check-item"><span class="check">☐</span> Run full Klipper configuration sweep — <code>python3 tests/run_tests.py --full-klipper-sweep</code></div>
                 <div class="check-item"><span class="check">☐</span> Verify CI pipeline passes (GitHub Actions)</div>
                 <div class="check-item"><span class="check">☐</span> MCU detection — STM32 family (F1/F4/H7/G0B)</div>
                 <div class="check-item"><span class="check">☐</span> MCU detection — LPC176x (SKR v1.3 / v1.4)</div>
