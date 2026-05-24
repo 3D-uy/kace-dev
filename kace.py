@@ -243,20 +243,6 @@ def main():
 
     parsed_data = parse_config(raw_cfg, user_data['board'])
 
-    # ── Display Compatibility Check ───────────────────────────────────────────
-    # Run before generation so users can make an informed decision about
-    # their display. Non-invasive: never modifies the parsed config.
-    _display_findings = check_display_compatibility(
-        parsed_data,
-        printer_filename=user_data.get('printer_profile', ''),
-        board_filename=user_data.get('board', ''),
-    )
-    if _display_findings:
-        _should_continue = _print_display_warning(_display_findings)
-        if not _should_continue:
-            print(f"\n\033[93m{t('kace.cancelled')}\033[0m")
-            sys.exit(0)
-
     # --- Multi-Z Pin Verification ---
     z_motors = int(user_data.get('z_motors', 1))
     if z_motors > 1:
@@ -347,6 +333,20 @@ def main():
 
                 del parsed_data[selected_driver]
                 available_driver_keys.remove(selected_driver)
+
+    # ── Display Compatibility Check ───────────────────────────────────────────
+    # Run before generation so users can make an informed decision about
+    # their display. Non-invasive: never modifies the parsed config.
+    _display_findings = check_display_compatibility(
+        parsed_data,
+        printer_filename=user_data.get('printer_profile', ''),
+        board_filename=user_data.get('board', ''),
+    )
+    if _display_findings:
+        _should_continue = _print_display_warning(_display_findings)
+        if not _should_continue:
+            print(f"\n\033[93m{t('kace.cancelled')}\033[0m")
+            sys.exit(0)
 
     time.sleep(0.5)
     print(f"\033[92m[*]\033[0m {t('kace.fetching_cfg_done', board=user_data['board'])}")
