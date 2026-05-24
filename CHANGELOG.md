@@ -6,6 +6,18 @@ KACE uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [Unreleased]
+
+### Added
+- Moonraker REST API deployment (`core/moonraker.py`) — upload `printer.cfg` and trigger `FIRMWARE_RESTART` or service restart without SSH
+- `deploy_moonraker()` in `core/deployer.py` — interactive deploy flow with reachability probe, SSH fallback, and restart selection
+- `🌐 Moonraker API (push + restart)` deploy option in the config deployment menu (`kace.py`)
+- Optional Moonraker API key support in the deployment prompt
+- 15 new unit tests for `core/moonraker.py` (`tests/unit/test_moonraker.py`)
+- Full EN/ES/PT translations for all Moonraker deploy UI strings
+
+---
+
 ## [0.9.0] — 2026-05-24
 
 ### Added

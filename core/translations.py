@@ -412,6 +412,11 @@ UI_STRINGS: dict = {
         "Español":   "Flashear por USB (avrdude)",
         "Português": "Gravar via USB (avrdude)",
     },
+    "kace.deploy_moonraker": {
+        "English":   "Moonraker API (push + restart)",
+        "Español":   "API Moonraker (enviar + reiniciar)",
+        "Português": "API Moonraker (enviar + reiniciar)",
+    },
     "kace.ssh_host_prompt": {
         "English":   "Enter SSH Host (e.g. 192.168.1.100):",
         "Español":   "Ingrese el Host SSH (ej. 192.168.1.100):",
@@ -431,6 +436,87 @@ UI_STRINGS: dict = {
         "English":   "Enter Destination Path:",
         "Español":   "Ingrese la Ruta de Destino:",
         "Português": "Digite o Caminho de Destino:",
+    },
+    # ── Moonraker deploy strings ────────────────────────────────
+    "moonraker.host_prompt": {
+        "English":   "Enter Moonraker host (e.g. 192.168.1.100 or mainsailos.local):",
+        "Español":   "Ingrese el host de Moonraker (ej. 192.168.1.100 o mainsailos.local):",
+        "Português": "Digite o host do Moonraker (ex. 192.168.1.100 ou mainsailos.local):",
+    },
+    "moonraker.port_prompt": {
+        "English":   "Enter Moonraker port (default: 7125):",
+        "Español":   "Ingrese el puerto de Moonraker (por defecto: 7125):",
+        "Português": "Digite a porta do Moonraker (padrão: 7125):",
+    },
+    "moonraker.api_key_prompt": {
+        "English":   "Enter Moonraker API key (leave blank if not required):",
+        "Español":   "Ingrese la clave API de Moonraker (deje en blanco si no es necesaria):",
+        "Português": "Digite a chave de API do Moonraker (deixe em branco se não for necessária):",
+    },
+    "moonraker.connecting": {
+        "English":   "Connecting to Moonraker at {host}:{port}...",
+        "Español":   "Conectando a Moonraker en {host}:{port}...",
+        "Português": "Conectando ao Moonraker em {host}:{port}...",
+    },
+    "moonraker.connected": {
+        "English":   "Connected — {version}",
+        "Español":   "Conectado — {version}",
+        "Português": "Conectado — {version}",
+    },
+    "moonraker.unreachable": {
+        "English":   "Moonraker not reachable at {host}:{port} — {error}",
+        "Español":   "Moonraker no accesible en {host}:{port} — {error}",
+        "Português": "Moonraker inacessível em {host}:{port} — {error}",
+    },
+    "moonraker.uploading": {
+        "English":   "Uploading printer.cfg to Moonraker...",
+        "Español":   "Subiendo printer.cfg a Moonraker...",
+        "Português": "Enviando printer.cfg para o Moonraker...",
+    },
+    "moonraker.upload_ok": {
+        "English":   "printer.cfg uploaded successfully.",
+        "Español":   "printer.cfg subido exitosamente.",
+        "Português": "printer.cfg enviado com sucesso.",
+    },
+    "moonraker.upload_fail": {
+        "English":   "Upload failed: {error}",
+        "Español":   "Error al subir el archivo: {error}",
+        "Português": "Falha no envio: {error}",
+    },
+    "moonraker.restart_prompt": {
+        "English":   "Restart Klipper to apply the new configuration?",
+        "Español":   "¿Reiniciar Klipper para aplicar la nueva configuración?",
+        "Português": "Reiniciar o Klipper para aplicar a nova configuração?",
+    },
+    "moonraker.restart_firmware": {
+        "English":   "FIRMWARE_RESTART (reload config, recommended)",
+        "Español":   "FIRMWARE_RESTART (recargar config, recomendado)",
+        "Português": "FIRMWARE_RESTART (recarregar config, recomendado)",
+    },
+    "moonraker.restart_service": {
+        "English":   "SERVICE_RESTART (full Klipper service restart)",
+        "Español":   "SERVICE_RESTART (reinicio completo del servicio Klipper)",
+        "Português": "SERVICE_RESTART (reinício completo do serviço Klipper)",
+    },
+    "moonraker.restart_skip": {
+        "English":   "Skip restart",
+        "Español":   "Omitir reinicio",
+        "Português": "Pular reinício",
+    },
+    "moonraker.restart_ok": {
+        "English":   "Klipper restart issued successfully.",
+        "Español":   "Reinicio de Klipper enviado exitosamente.",
+        "Português": "Reinício do Klipper emitido com sucesso.",
+    },
+    "moonraker.restart_fail": {
+        "English":   "Restart command failed: {error}",
+        "Español":   "Error al enviar el comando de reinicio: {error}",
+        "Português": "Falha no comando de reinício: {error}",
+    },
+    "moonraker.fallback_ssh": {
+        "English":   "Would you like to fall back to SSH deployment instead?",
+        "Español":   "¿Desea usar el despliegue por SSH en su lugar?",
+        "Português": "Deseja usar o deploy por SSH como alternativa?",
     },
     "kace.fetching_cfg": {
         "English":   "Fetching configuration for {board}...",

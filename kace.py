@@ -79,7 +79,7 @@ from core.scraper import fetch_raw_config, parse_config
 from core.wizard import run_wizard
 from core.style import custom_style
 from core.generator import generate_config, has_todo_pins
-from core.deployer import deploy_config, deploy_usb, deploy_local, deploy_avrdude
+from core.deployer import deploy_config, deploy_usb, deploy_local, deploy_avrdude, deploy_moonraker
 from core.banner import print_kace_banner
 from core.translations import t
 from core.display_checker import check_display_compatibility
@@ -438,10 +438,11 @@ def main():
     deploy_cfg = questionary.select(
         f"\n{t('kace.deploy_cfg_prompt')}",
         choices=[
-            {"name": f"✅  {t('kace.deploy_none')}",  "value": "none"},
-            {"name": f"📁  {t('kace.deploy_local')}",  "value": "local"},
-            {"name": f"💾  {t('kace.deploy_usb')}",    "value": "usb"},
-            {"name": f"🔗  {t('kace.deploy_ssh')}",    "value": "ssh"},
+            {"name": f"✅  {t('kace.deploy_none')}",       "value": "none"},
+            {"name": f"📁  {t('kace.deploy_local')}",       "value": "local"},
+            {"name": f"💾  {t('kace.deploy_usb')}",         "value": "usb"},
+            {"name": f"🔗  {t('kace.deploy_ssh')}",         "value": "ssh"},
+            {"name": f"🌐  {t('kace.deploy_moonraker')}",   "value": "moonraker"},
         ],
         style=custom_style
     ).ask()
@@ -457,6 +458,8 @@ def main():
         user_data['dest_path'] = questionary.text(t("kace.ssh_dest_prompt"), default="~/printer_data/config/", style=custom_style).ask()
         if user_data['host'] and user_data['user'] and user_data['dest_path']:
             deploy_config(user_data)
+    elif deploy_cfg == "moonraker":
+        deploy_moonraker(user_data)
 
     time.sleep(0.5)
     print_summary(user_data)

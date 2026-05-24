@@ -235,3 +235,114 @@ def deploy_avrdude(user_data, artifact_path, mcu_type):
     else:
         print("\n\033[93mCommand execution cancelled. You can run it manually.\033[0m")
 
+
+def deploy_moonraker(user_data):
+    """Deploy printer.cfg to a Klipper host via the Moonraker REST API.
+
+    Workflow:
+      1. Prompt for Moonraker host, port, and optional API key.
+      2. Probe reachability via GET /server/info.
+      3. Upload printer.cfg via POST /server/files/upload.
+      4. Optionally trigger FIRMWARE_RESTART or service restart.
+      5. On failure, offer to fall back to SSH deployment.
+    """
+    import questionary
+    from core.style import custom_style
+    from core.translations import t
+    from core.moonraker import (
+        DEFAULT_PORT,
+        check_moonraker,
+        upload_printer_cfg,
+        restart_firmware,
+        restart_klipper_service,
+    )
+
+    # ── Step 1: Gather connection details ─────────────────────────
+    host = questionary.text(
+        t("moonraker.host_prompt"),
+        default=user_data.get("moonraker_host", ""),
+        style=custom_style,
+    ).ask()
+
+    if not host:
+        print("\033[93mMoonraker deployment cancelled.\033[0m")
+        return
+
+    port_str = questionary.text(
+        t("moonraker.port_prompt"),
+        default=str(user_data.get("moonraker_port", DEFAULT_PORT)),
+        style=custom_style,
+    ).ask()
+
+    try:
+        port = int(port_str) if port_str else DEFAULT_PORT
+    except ValueError:
+        port = DEFAULT_PORT
+
+    api_key = questionary.text(
+        t("moonraker.api_key_prompt"),
+        default="",
+        style=custom_style,
+    ).ask() or ""
+
+    # Persist for potential SSH fallback later
+    user_data["moonraker_host"] = host
+    user_data["moonraker_port"] = port
+
+    # ── Step 2: Probe reachability ────────────────────────────────
+    print(f"\n\033[96m[*]\033[0m {t('moonraker.connecting', host=host, port=port)}")
+    ok, info = check_moonraker(host, port)
+
+    if not ok:
+        print(f"\033[91m[!] {t('moonraker.unreachable', host=host, port=port, error=info)}\033[0m")
+        # Offer SSH fallback
+        fallback = questionary.confirm(
+            t("moonraker.fallback_ssh"),
+            default=False,
+            style=custom_style,
+        ).ask()
+        if fallback:
+            user_data['host']      = host
+            user_data['user']      = questionary.text(t("kace.ssh_user_prompt"), default="pi", style=custom_style).ask()
+            user_data['password']  = questionary.password(t("kace.ssh_pass_prompt"), style=custom_style).ask()
+            user_data['dest_path'] = questionary.text(t("kace.ssh_dest_prompt"), default="~/printer_data/config/", style=custom_style).ask()
+            if user_data['host'] and user_data['user'] and user_data['dest_path']:
+                deploy_config(user_data)
+        return
+
+    print(f"\033[92m[✔] {t('moonraker.connected', version=info)}\033[0m")
+
+    # ── Step 3: Upload printer.cfg ────────────────────────────────
+    print(f"\033[96m[*]\033[0m {t('moonraker.uploading')}")
+    cfg_path = os.path.expanduser("~/kace/printer.cfg")
+    ok, result = upload_printer_cfg(host, port, cfg_path)
+
+    if not ok:
+        print(f"\033[91m[!] {t('moonraker.upload_fail', error=result)}\033[0m")
+        return
+
+    print(f"\033[92m[✔] {t('moonraker.upload_ok')}\033[0m")
+
+    # ── Step 4: Restart prompt ────────────────────────────────────
+    restart_choice = questionary.select(
+        t("moonraker.restart_prompt"),
+        choices=[
+            {"name": t("moonraker.restart_firmware"), "value": "firmware"},
+            {"name": t("moonraker.restart_service"),  "value": "service"},
+            {"name": t("moonraker.restart_skip"),     "value": "skip"},
+        ],
+        style=custom_style,
+    ).ask()
+
+    if restart_choice == "firmware":
+        ok, msg = restart_firmware(host, port)
+    elif restart_choice == "service":
+        ok, msg = restart_klipper_service(host, port)
+    else:
+        return   # user skipped
+
+    if ok:
+        print(f"\033[92m[✔] {t('moonraker.restart_ok')}\033[0m")
+    else:
+        print(f"\033[91m[!] {t('moonraker.restart_fail', error=msg)}\033[0m")
+
