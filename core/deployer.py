@@ -87,6 +87,13 @@ def deploy_config(user_data):
         cfg_path = os.path.expanduser('~/kace/printer.cfg')
         sftp.put(cfg_path, dest_file)
 
+        # Upload macros.cfg if it exists
+        macros_path = os.path.expanduser('~/kace/macros.cfg')
+        if os.path.exists(macros_path):
+            dest_macros = posixpath.join(posixpath.dirname(dest_file), 'macros.cfg')
+            print(f"Uploading macros.cfg to {dest_macros}...")
+            sftp.put(macros_path, dest_macros)
+
         sftp.close()
         ssh.close()
     except Exception as e:
@@ -102,6 +109,7 @@ def deploy_usb(user_data, artifact_type="all"):
         name_prompt = "Configuration (printer.cfg)" if artifact_type == "config" else \
                       "Firmware (klipper.bin/.uf2)" if artifact_type == "firmware" else "Configuration and Firmware"
                       
+        is_non_windows = platform.system() != "Windows"
         is_docker = os.path.exists('/.dockerenv') or os.environ.get('KACE_DOCKER') == '1'
         
         while True:
@@ -113,9 +121,12 @@ def deploy_usb(user_data, artifact_type="all"):
             if not dest:
                 return
                 
-            if is_docker and (dest.strip().startswith(tuple(f"{c}:" for c in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")) or '\\' in dest):
-                print("\033[91m[Error] Windows drive paths (containing '\\' or drive letters) are not accessible inside Docker.\033[0m")
-                print("\033[93m        To write to your Windows machine, please use /workspace (e.g., /workspace/outputs).\033[0m\n")
+            if is_non_windows and (dest.strip().startswith(tuple(f"{c}:" for c in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")) or '\\' in dest):
+                if is_docker:
+                    print("\033[91m[Error] Windows drive paths (containing '\\' or drive letters) are not accessible inside Docker.\033[0m")
+                    print("\033[93m        To write to your Windows machine, please use /workspace (e.g., /workspace/outputs).\033[0m\n")
+                else:
+                    print("\033[91m[Error] Windows drive paths (containing '\\' or drive letters) are not supported on non-Windows platforms.\033[0m\n")
                 continue
             break
         
@@ -131,6 +142,12 @@ def deploy_usb(user_data, artifact_type="all"):
                 print(f"Copying printer.cfg to {dest}...")
                 shutil.copy2(cfg_path, os.path.join(dest, 'printer.cfg'))
                 success = True
+            
+            # Copy macros.cfg if it exists
+            macros_path = os.path.expanduser('~/kace/macros.cfg')
+            if os.path.exists(macros_path):
+                print(f"Copying macros.cfg to {dest}...")
+                shutil.copy2(macros_path, os.path.join(dest, 'macros.cfg'))
         
         if artifact_type in ["firmware", "all"]:
             for ext in ['klipper.bin', 'klipper.uf2', 'klipper.elf.hex']:
@@ -157,6 +174,7 @@ def deploy_local(user_data, artifact_type="all"):
         name_prompt = "Configuration (printer.cfg)" if artifact_type == "config" else \
                       "Firmware (klipper.bin/.uf2)" if artifact_type == "firmware" else "Configuration and Firmware"
                       
+        is_non_windows = platform.system() != "Windows"
         is_docker = os.path.exists('/.dockerenv') or os.environ.get('KACE_DOCKER') == '1'
         
         while True:
@@ -168,9 +186,12 @@ def deploy_local(user_data, artifact_type="all"):
             if not dest:
                 return
 
-            if is_docker and (dest.strip().startswith(tuple(f"{c}:" for c in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")) or '\\' in dest):
-                print("\033[91m[Error] Windows drive paths (containing '\\' or drive letters) are not accessible inside Docker.\033[0m")
-                print("\033[93m        To write to your Windows machine, please use /workspace (e.g., /workspace/outputs).\033[0m\n")
+            if is_non_windows and (dest.strip().startswith(tuple(f"{c}:" for c in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")) or '\\' in dest):
+                if is_docker:
+                    print("\033[91m[Error] Windows drive paths (containing '\\' or drive letters) are not accessible inside Docker.\033[0m")
+                    print("\033[93m        To write to your Windows machine, please use /workspace (e.g., /workspace/outputs).\033[0m\n")
+                else:
+                    print("\033[91m[Error] Windows drive paths (containing '\\' or drive letters) are not supported on non-Windows platforms.\033[0m\n")
                 continue
             break
 
@@ -187,6 +208,12 @@ def deploy_local(user_data, artifact_type="all"):
                 print(f"Copying printer.cfg to {dest}...")
                 shutil.copy2(cfg_path, os.path.join(dest, 'printer.cfg'))
                 success = True
+            
+            # Copy macros.cfg if it exists
+            macros_path = os.path.expanduser('~/kace/macros.cfg')
+            if os.path.exists(macros_path):
+                print(f"Copying macros.cfg to {dest}...")
+                shutil.copy2(macros_path, os.path.join(dest, 'macros.cfg'))
         
         if artifact_type in ["firmware", "all"]:
             for ext in ['klipper.bin', 'klipper.uf2', 'klipper.elf.hex']:
@@ -333,7 +360,7 @@ def deploy_moonraker(user_data):
 
     print(f"\033[92m[✔] {t('moonraker.connected', version=info)}\033[0m")
 
-    # ── Step 3: Upload printer.cfg ────────────────────────────────
+    # ── Step 3: Upload printer.cfg & macros.cfg ────────────────────────────────
     print(f"\033[96m[*]\033[0m {t('moonraker.uploading')}")
     cfg_path = os.path.expanduser("~/kace/printer.cfg")
     ok, result = upload_printer_cfg(host, port, cfg_path)
@@ -341,6 +368,14 @@ def deploy_moonraker(user_data):
     if not ok:
         print(f"\033[91m[!] {t('moonraker.upload_fail', error=result)}\033[0m")
         return
+
+    # Upload macros.cfg if it exists
+    macros_path = os.path.expanduser("~/kace/macros.cfg")
+    if os.path.exists(macros_path):
+        print(f"\033[96m[*]\033[0m Uploading macros.cfg...")
+        ok_m, res_m = upload_printer_cfg(host, port, macros_path)
+        if not ok_m:
+            print(f"\033[91m[!] Failed to upload macros.cfg: {res_m}\033[0m")
 
     print(f"\033[92m[✔] {t('moonraker.upload_ok')}\033[0m")
 

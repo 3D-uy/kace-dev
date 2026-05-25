@@ -1,4 +1,5 @@
 import unittest
+import unittest.mock
 import sys
 import subprocess
 import builtins
@@ -43,5 +44,54 @@ class TestDeployer(unittest.TestCase):
             else:
                 del sys.modules['paramiko']
 
+    @unittest.mock.patch('core.deployer.platform.system', return_value="Linux")
+    @unittest.mock.patch('core.deployer.os.path.exists')
+    @unittest.mock.patch('questionary.text')
+    @unittest.mock.patch('builtins.print')
+    def test_deploy_local_validation_non_windows(self, mock_print, mock_q_text, mock_exists, mock_system):
+        """Verify that Windows-style paths are blocked on native non-Windows OS."""
+        mock_ask = unittest.mock.MagicMock(side_effect=["E:\\", ""])
+        mock_text_instance = unittest.mock.MagicMock()
+        mock_text_instance.ask = mock_ask
+        mock_q_text.return_value = mock_text_instance
+        
+        mock_exists.return_value = False
+        
+        import os
+        orig_environ = os.environ.copy()
+        if "KACE_DOCKER" in os.environ:
+            del os.environ["KACE_DOCKER"]
+            
+        try:
+            from core.deployer import deploy_local
+            deploy_local({}, artifact_type="config")
+        finally:
+            os.environ.clear()
+            os.environ.update(orig_environ)
+        
+        printed_messages = [call[0][0] for call in mock_print.call_args_list]
+        self.assertTrue(any("not supported on non-Windows platforms" in msg for msg in printed_messages))
+
+    @unittest.mock.patch('core.deployer.platform.system', return_value="Linux")
+    @unittest.mock.patch('core.deployer.os.path.exists')
+    @unittest.mock.patch('questionary.text')
+    @unittest.mock.patch('builtins.print')
+    def test_deploy_local_validation_docker(self, mock_print, mock_q_text, mock_exists, mock_system):
+        """Verify that Windows-style paths are blocked and direct users to /workspace inside Docker."""
+        mock_ask = unittest.mock.MagicMock(side_effect=["E:\\", ""])
+        mock_text_instance = unittest.mock.MagicMock()
+        mock_text_instance.ask = mock_ask
+        mock_q_text.return_value = mock_text_instance
+        
+        mock_exists.side_effect = lambda path: True if path == '/.dockerenv' else False
+        
+        from core.deployer import deploy_local
+        deploy_local({}, artifact_type="config")
+        
+        printed_messages = [call[0][0] for call in mock_print.call_args_list]
+        self.assertTrue(any("not accessible inside Docker" in msg for msg in printed_messages))
+        self.assertTrue(any("please use /workspace" in msg for msg in printed_messages))
+
 if __name__ == '__main__':
+    import unittest.mock
     unittest.main()
