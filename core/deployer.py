@@ -102,10 +102,22 @@ def deploy_usb(user_data, artifact_type="all"):
         name_prompt = "Configuration (printer.cfg)" if artifact_type == "config" else \
                       "Firmware (klipper.bin/.uf2)" if artifact_type == "firmware" else "Configuration and Firmware"
                       
-        dest = questionary.text(
-            f"Enter USB/SD Card mount path for {name_prompt} (e.g. D:\\ or /media/usb):",
-            style=custom_style
-        ).ask()
+        is_docker = os.path.exists('/.dockerenv') or os.environ.get('KACE_DOCKER') == '1'
+        
+        while True:
+            dest = questionary.text(
+                f"Enter USB/SD Card mount path for {name_prompt} (e.g. D:\\ or /media/usb):",
+                style=custom_style
+            ).ask()
+            
+            if not dest:
+                return
+                
+            if is_docker and (dest.strip().startswith(tuple(f"{c}:" for c in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")) or '\\' in dest):
+                print("\033[91m[Error] Windows drive paths (containing '\\' or drive letters) are not accessible inside Docker.\033[0m")
+                print("\033[93m        To write to your Windows machine, please use /workspace (e.g., /workspace/outputs).\033[0m\n")
+                continue
+            break
         
         if not dest or not os.path.isdir(dest):
             print(f"\033[91mDeployment failed: Invalid path or directory does not exist: {dest}\033[0m")
@@ -145,13 +157,22 @@ def deploy_local(user_data, artifact_type="all"):
         name_prompt = "Configuration (printer.cfg)" if artifact_type == "config" else \
                       "Firmware (klipper.bin/.uf2)" if artifact_type == "firmware" else "Configuration and Firmware"
                       
-        dest = questionary.text(
-            f"Enter local destination folder path for {name_prompt} (e.g. C:\\3DPrinter or ~/Documents):",
-            style=custom_style
-        ).ask()
+        is_docker = os.path.exists('/.dockerenv') or os.environ.get('KACE_DOCKER') == '1'
         
-        if not dest:
-            return
+        while True:
+            dest = questionary.text(
+                f"Enter local destination folder path for {name_prompt} (e.g. C:\\3DPrinter or ~/Documents):",
+                style=custom_style
+            ).ask()
+            
+            if not dest:
+                return
+
+            if is_docker and (dest.strip().startswith(tuple(f"{c}:" for c in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")) or '\\' in dest):
+                print("\033[91m[Error] Windows drive paths (containing '\\' or drive letters) are not accessible inside Docker.\033[0m")
+                print("\033[93m        To write to your Windows machine, please use /workspace (e.g., /workspace/outputs).\033[0m\n")
+                continue
+            break
 
         dest = os.path.expanduser(dest)
         
