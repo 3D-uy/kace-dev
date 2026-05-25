@@ -392,7 +392,6 @@ def run_wizard():
             step += 1
             
         elif step == 8:
-            print("")
             preset_choices = list(THERMISTOR_PRESETS)
             if user_data["bed_thermistor"] not in preset_choices:
                 preset_choices.insert(0, user_data["bed_thermistor"])
