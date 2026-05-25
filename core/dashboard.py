@@ -241,8 +241,6 @@ def run_dashboard(state: dict) -> str:
 
         choices = [
             {"name": t("dashboard.action_generate"),  "value": "generate"},
-            {"name": t("dashboard.action_reconfig"),  "value": "reconfigure"},
-            {"name": t("dashboard.action_manage"),    "value": "manage"},
             {"name": t("dashboard.action_quit"),      "value": "quit"},
         ]
 
