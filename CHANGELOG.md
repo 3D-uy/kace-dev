@@ -15,12 +15,16 @@ KACE uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 - Standardized Klipper pin validation (`core/validators.py`) using regex pattern `^[!^~]*[A-Za-z0-9_.]+$`.
 - Automated pre-commit hook to safeguard against hardcoded UI strings and local Windows paths (`scripts/pre-commit`).
-- Full unit tests for pin validation (`tests/unit/test_validators.py`).
+- Full unit tests for pin validation (`tests/unit/test_validators.py`), including explicit verification of prefix-only (`!^`, `~`), internal spaces (`PA 0`), and combined prefixes (`!^PA0`).
+- Moonraker plain HTTP API key transmission warning prompt requiring user confirmation (`core/deployer.py`).
+- API key propagation header (`X-Api-Key`) for all Moonraker REST request calls (`core/moonraker.py`).
+- Security/functional unit tests in `tests/unit/test_deployer.py` covering Moonraker HTTP warning triggers and parameter propagation.
 
 ### Changed
 - Refactored eager-loading database databases to load lazily at runtime across `core/wizard.py`, `core/display_checker.py`, `firmware/derivation.py`, and `core/advanced_module_handler.py`.
 - Consolidated Z-motor configuration logic under `_step_z_socket_assignment` and removed duplicated code.
 - Cleaned up display warnings and interactive steps to utilize the central `t()` translation mechanism.
+- Upgraded GitHub Actions `actions/checkout@v5` and `docker/setup-buildx-action@v4` in `ci.yml` and configured runner to execute under Node.js 24 natively.
 
 ---
 
