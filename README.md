@@ -8,7 +8,7 @@
   <a href="https://github.com/3D-uy/kace/actions/workflows/ci.yml">
     <img src="https://github.com/3D-uy/kace/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI">
   </a>
-  <img src="https://img.shields.io/badge/version-v0.9.1-blue?style=flat-square" alt="Version">
+  <img src="https://img.shields.io/badge/version-v0.9.2-blue?style=flat-square" alt="Version">
   <img src="https://img.shields.io/badge/configs%20validated-192-brightgreen?style=flat-square" alt="Configs Validated">
   <img src="https://img.shields.io/badge/platform-Linux%20%7C%20Raspberry%20Pi-green?style=flat-square" alt="Platform">
   <img src="https://img.shields.io/github/license/3D-uy/KACE?style=flat-square" alt="License">
@@ -46,14 +46,14 @@ An **intelligent configuration and firmware engine** that:
 
 ## ⚡ Installation
 
-For production deployments, the installer is pinned to the release tag (`v0.9.1`) and dependencies are hash-verified.
+For production deployments, the installer is pinned to the release tag (`v0.9.2`) and dependencies are hash-verified.
 
 ### Secure Verification (Recommended)
 Verify the installer script before running it:
 
 ```bash
 # 1. Download the pinned installer script
-curl -sSL -o install.sh https://raw.githubusercontent.com/3D-uy/kace-dev/v0.9.1/install.sh
+curl -sSL -o install.sh https://raw.githubusercontent.com/3D-uy/kace-dev/v0.9.2/install.sh
 
 # 2. Inspect/verify the script (e.g. SHA-256 hash check)
 sha256sum install.sh
@@ -66,10 +66,10 @@ bash install.sh
 Alternatively, run the installer directly:
 
 ```bash
-bash <(curl -sSL https://raw.githubusercontent.com/3D-uy/kace-dev/v0.9.1/install.sh)
+bash <(curl -sSL https://raw.githubusercontent.com/3D-uy/kace-dev/v0.9.2/install.sh)
 ```
 
-> Installs all dependencies with pip hash validation, clones the repository pinned to `v0.9.1` (shallow + sparse), and sets up the global `kace` command.
+> Installs all dependencies with pip hash validation, clones the repository pinned to `v0.9.2` (shallow + sparse), and sets up the global `kace` command.
 
 ---
 

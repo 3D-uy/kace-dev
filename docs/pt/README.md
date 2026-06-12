@@ -8,7 +8,7 @@
   <a href="https://github.com/3D-uy/kace/actions/workflows/ci.yml">
     <img src="https://github.com/3D-uy/kace/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI">
   </a>
-  <img src="https://img.shields.io/badge/vers%C3%A3o-v0.9.1-blue?style=flat-square" alt="Versão">
+  <img src="https://img.shields.io/badge/vers%C3%A3o-v0.9.2-blue?style=flat-square" alt="Versão">
   <img src="https://img.shields.io/badge/configs%20validadas-192-brightgreen?style=flat-square" alt="Configs Validadas">
   <img src="https://img.shields.io/badge/plataforma-Linux%20%7C%20Raspberry%20Pi-green?style=flat-square" alt="Plataforma">
   <img src="https://img.shields.io/github/license/3D-uy/KACE?style=flat-square" alt="Licença">
@@ -47,7 +47,7 @@ Um **motor inteligente de configuração e firmware** que:
 ## ⚡ Instalação em uma linha
 
 ```bash
-bash <(curl -sSL https://raw.githubusercontent.com/3D-uy/kace-dev/v0.9.1/install.sh)
+bash <(curl -sSL https://raw.githubusercontent.com/3D-uy/kace-dev/v0.9.2/install.sh)
 ```
 
 > Instala todas as dependências, clona o repositório (shallow + sparse) e configura o comando global `kace` automaticamente.

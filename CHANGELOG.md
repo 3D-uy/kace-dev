@@ -10,6 +10,20 @@ KACE uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.9.2] — 2026-06-12
+
+### Added
+- Standardized Klipper pin validation (`core/validators.py`) using regex pattern `^[!^~]*[A-Za-z0-9_.]+$`.
+- Automated pre-commit hook to safeguard against hardcoded UI strings and local Windows paths (`scripts/pre-commit`).
+- Full unit tests for pin validation (`tests/unit/test_validators.py`).
+
+### Changed
+- Refactored eager-loading database databases to load lazily at runtime across `core/wizard.py`, `core/display_checker.py`, `firmware/derivation.py`, and `core/advanced_module_handler.py`.
+- Consolidated Z-motor configuration logic under `_step_z_socket_assignment` and removed duplicated code.
+- Cleaned up display warnings and interactive steps to utilize the central `t()` translation mechanism.
+
+---
+
 ## [0.9.1] — 2026-06-12
 
 ### Added
@@ -86,7 +100,8 @@ KACE uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - ANSI colour-coded terminal UI with emoji icon menus
 - Validated against 192 official Klipper board configurations
 
-[Unreleased]: https://github.com/3D-uy/kace/compare/v0.9.1...HEAD
+[Unreleased]: https://github.com/3D-uy/kace-dev/compare/v0.9.2...HEAD
+[0.9.2]: https://github.com/3D-uy/kace-dev/compare/v0.9.1...v0.9.2
 [0.9.1]: https://github.com/3D-uy/kace/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/3D-uy/kace/compare/v0.1.0...v0.9.0
 [0.1.0]: https://github.com/3D-uy/kace/releases/tag/v0.1.0
