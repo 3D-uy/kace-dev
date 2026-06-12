@@ -10,6 +10,7 @@ from core.translations import t, get_lang
 from core.display_wizard import run_display_setup_step
 from core.probe_offset_visualizer import run_probe_offset_step
 from .exceptions import WizardExit
+from core.validators import questionary_pin_validator
 
 _BACK = "__back__"
 _QUIT = "__quit__"
@@ -54,7 +55,27 @@ def _load_mcu_search_terms() -> dict:
     except Exception:
         return _MCU_SEARCH_TERMS_FALLBACK
 
-MCU_SEARCH_TERMS = _load_mcu_search_terms()
+_MCU_SEARCH_TERMS = None
+_PRINTER_PROFILES_DB = None
+
+def _get_mcu_search_terms() -> dict:
+    global _MCU_SEARCH_TERMS
+    if _MCU_SEARCH_TERMS is None:
+        _MCU_SEARCH_TERMS = _load_mcu_search_terms()
+    return _MCU_SEARCH_TERMS
+
+def _get_printer_profiles() -> list:
+    global _PRINTER_PROFILES_DB
+    if _PRINTER_PROFILES_DB is None:
+        _PRINTER_PROFILES_DB = _load_printer_profiles()
+    return _PRINTER_PROFILES_DB
+
+def __getattr__(name: str):
+    if name == "MCU_SEARCH_TERMS":
+        return _get_mcu_search_terms()
+    if name == "PRINTER_PROFILES_DB":
+        return _get_printer_profiles()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 def _normalize_mcu_family(mcu: str) -> str:
     if not mcu:
@@ -75,8 +96,6 @@ def _load_printer_profiles() -> list:
         return db.get('printer_profiles', [])
     except Exception:
         return []
-
-PRINTER_PROFILES_DB = _load_printer_profiles()
 
 
 def get_current_board_parsed(user_data) -> dict:
@@ -194,11 +213,11 @@ def _step_profile_review_inner(defaults: dict, parsed: dict, user_data: dict) ->
         print_detected_profile_summary(defaults, parsed)
 
         action = questionary.select(
-            "What would you like to do?",
+            t("wizard.profile_review_prompt"),
             choices=[
-                {"name": "✓  Continue",      "value": "confirm"},
-                {"name": "⚙  Edit Profile",  "value": "edit"},
-                {"name": "◀  Back",          "value": "back"},
+                {"name": t("choice.continue"),      "value": "confirm"},
+                {"name": t("choice.edit_profile"),  "value": "edit"},
+                {"name": t("choice.arrow_back"),    "value": "back"},
             ],
             style=custom_style
         ).ask()
@@ -279,7 +298,7 @@ def _step_profile_editor_inner(defaults: dict, parsed: dict, user_data: dict) ->
             comment = t(comment_key)
             return f"  {B}{idx:>2}.{R}  {label:<22} {C}{value}{R}  {D}# {comment}{R}"
 
-        print(f"\n  {B}⚙  Edit Profile{R}")
+        print(f"\n  {B}{t('choice.edit_profile')}{R}")
         print(f"  {SEP}")
         print(_row(1,  "Kinematics",         kin,                             "profile.comment_kinematics"))
         print(_row(2,  "Build Volume",        f"{x_sz} x {y_sz} x {z_sz} mm", "profile.comment_build_volume"))
@@ -302,17 +321,17 @@ def _step_profile_editor_inner(defaults: dict, parsed: dict, user_data: dict) ->
         print()
 
         prop = questionary.select(
-            "Select a field to edit, or save:",
+            t("wizard.profile_editor_prompt"),
             choices=[
-                {"name": "✓  Save & Continue",  "value": "save"},
-                {"name": " 1. Kinematics",       "value": "kinematics"},
-                {"name": " 2. Build Volume",     "value": "volume"},
-                {"name": "3-5. X Axis Limits",   "value": "x_limits"},
-                {"name": "6-8. Y Axis Limits",   "value": "y_limits"},
-                {"name": "9-11. Z Axis Limits",  "value": "z_limits"},
-                {"name": "12. Hotend Thermistor","value": "hotend_thermistor"},
-                {"name": "13. Bed Thermistor",   "value": "bed_thermistor"},
-                {"name": "◀  Back (discard)",    "value": "back"},
+                {"name": t("choice.save_continue"),            "value": "save"},
+                {"name": t("choice.editor_kinematics"),        "value": "kinematics"},
+                {"name": t("choice.editor_volume"),            "value": "volume"},
+                {"name": t("choice.editor_x_limits"),          "value": "x_limits"},
+                {"name": t("choice.editor_y_limits"),          "value": "y_limits"},
+                {"name": t("choice.editor_z_limits"),          "value": "z_limits"},
+                {"name": t("choice.editor_hotend_thermistor"), "value": "hotend_thermistor"},
+                {"name": t("choice.editor_bed_thermistor"),    "value": "bed_thermistor"},
+                {"name": t("choice.back_discard"),              "value": "back"},
             ],
             style=custom_style
         ).ask()
@@ -549,7 +568,7 @@ def run_wizard(user_data_arg=None):
     if detected_mcu:
         print(f"\n{t('wizard.detected_mcu')}: {detected_mcu.upper()}\n")
         exact_matches = []
-        for base_mcu, terms in MCU_SEARCH_TERMS.items():
+        for base_mcu, terms in _get_mcu_search_terms().items():
             if detected_mcu == base_mcu or detected_mcu.startswith(base_mcu):
                 for b in board_configs:
                     if any(term in b.lower() for term in terms) and b not in exact_matches:
@@ -562,7 +581,7 @@ def run_wizard(user_data_arg=None):
             norm_det = _normalize_mcu_family(detected_mcu)
             if norm_det:
                 fallback_matches = []
-                for base_mcu, terms in MCU_SEARCH_TERMS.items():
+                for base_mcu, terms in _get_mcu_search_terms().items():
                     if (_normalize_mcu_family(base_mcu) == norm_det
                             or base_mcu.startswith(norm_det)
                             or norm_det.startswith(base_mcu)):
@@ -771,6 +790,7 @@ def _apply_z_tmc_mappings(user_data: dict) -> None:
                 if dest_tmc not in parsed_data or pin_key not in parsed_data[dest_tmc]:
                     uart_pin = questionary.text(
                         t("wizard.custom_uart_pin", mode=driver_mode.lower(), motor=motor_name),
+                        validate=questionary_pin_validator,
                         style=custom_style
                     ).ask()
                     if not uart_pin:
@@ -855,6 +875,7 @@ def _step_fan_assignment(user_data: dict) -> str:
     if ans_part == "custom":
         custom_pin = questionary.text(
             t("wizard.fan_enter_custom"),
+            validate=questionary_pin_validator,
             style=custom_style
         ).ask()
         if custom_pin is None:
@@ -902,6 +923,7 @@ def _step_fan_assignment(user_data: dict) -> str:
     if ans_hotend == "custom":
         custom_pin = questionary.text(
             t("wizard.fan_enter_custom"),
+            validate=questionary_pin_validator,
             style=custom_style
         ).ask()
         if custom_pin is None:
@@ -1129,9 +1151,9 @@ def _step_z_socket_assignment(user_data):
 
         if selected_driver == "custom":
             print(t("wizard.assign_custom_pins_header", motor=motor_name))
-            step_pin = questionary.text(t("wizard.custom_step_pin"), style=custom_style).ask()
-            dir_pin  = questionary.text(t("wizard.custom_dir_pin"),  style=custom_style).ask()
-            en_pin   = questionary.text(t("wizard.custom_en_pin"),   style=custom_style).ask()
+            step_pin = questionary.text(t("wizard.custom_step_pin"), validate=questionary_pin_validator, style=custom_style).ask()
+            dir_pin  = questionary.text(t("wizard.custom_dir_pin"),  validate=questionary_pin_validator, style=custom_style).ask()
+            en_pin   = questionary.text(t("wizard.custom_en_pin"),   validate=questionary_pin_validator, style=custom_style).ask()
             if not step_pin or not dir_pin or not en_pin:
                 print(f"\n\033[91m{t('kace.abort_valid_pins')}\033[0m")
                 raise WizardExit()
@@ -1364,150 +1386,4 @@ def _step_z_motors(user_data):
     return ans
 
 
-# ── Z-motor socket assignment (unchanged workflow helper) ─────────────────────
 
-def run_z_motor_configuration(user_data: dict, parsed_data: dict) -> bool:
-    z_motors = int(user_data.get('z_motors', 1))
-    if z_motors <= 1:
-        return True
-
-    raw_cfg = fetch_raw_config(user_data['board'])
-    available_driver_sockets = get_reusable_driver_sockets(
-        raw_cfg, user_data.get('board', '')
-    )
-    available_driver_sockets = list(available_driver_sockets)
-
-    _parsed_full = None
-    z_idx = 2
-    assigned_drivers = {}
-
-    while z_idx <= z_motors:
-        motor_name = f"stepper_z{z_idx - 1}"
-
-        if motor_name in parsed_data:
-            z_idx += 1
-            continue
-
-        driver_choices = []
-        for sock_key, sock_label in available_driver_sockets:
-            if not driver_choices:
-                display_label = f"{sock_label}  ✓ Recommended"
-            else:
-                display_label = sock_label
-            driver_choices.append({"name": display_label, "value": sock_key})
-
-        driver_choices.append({"name": t("choice.custom_pins"), "value": "custom"})
-        driver_choices.append({"name": t("choice.back") or "Back", "value": "back"})
-        driver_choices.append({"name": t("choice.quit_setup"), "value": "quit"})
-
-        print(f"\n\033[96m{t('wizard.mapping_pins', motor=motor_name)}\033[0m")
-        selected_driver = questionary.select(
-            t("wizard.select_driver_z", motor=motor_name.upper()),
-            choices=driver_choices,
-            style=custom_style
-        ).ask()
-
-        if selected_driver == "quit" or selected_driver is None:
-            raise WizardExit()
-
-        if selected_driver == "back":
-            if z_idx > 2:
-                z_idx -= 1
-                prev_motor = f"stepper_z{z_idx - 1}"
-                if prev_motor in assigned_drivers:
-                    prev_driver_key = assigned_drivers[prev_motor]
-                    if prev_driver_key != "custom":
-                        _restored_label = prev_driver_key.replace("extruder_stepper ", "").upper() \
-                            if prev_driver_key.startswith("extruder_stepper ") \
-                            else f"E{prev_driver_key.replace('extruder', '')}"
-                        available_driver_sockets.append((prev_driver_key, _restored_label))
-                        available_driver_sockets.sort(key=lambda t_: t_[0])
-                        if prev_motor in parsed_data:
-                            del parsed_data[prev_motor]
-                        driver_type = user_data.get("driver_type") or "None (Standard)"
-                        dest_tmc = f"{driver_type.lower()} {prev_motor}"
-                        if dest_tmc in parsed_data:
-                            del parsed_data[dest_tmc]
-                continue
-            else:
-                return False
-
-        if selected_driver == "custom":
-            print(t("wizard.assign_custom_pins_header", motor=motor_name))
-            step_pin = questionary.text(t("wizard.custom_step_pin"), style=custom_style).ask()
-            dir_pin = questionary.text(t("wizard.custom_dir_pin"), style=custom_style).ask()
-            en_pin = questionary.text(t("wizard.custom_en_pin"), style=custom_style).ask()
-
-            if not step_pin or not dir_pin or not en_pin:
-                print(f"\n\033[91m{t('kace.abort_valid_pins')}\033[0m")
-                raise WizardExit()
-
-            parsed_data[motor_name] = {
-                "step_pin": step_pin,
-                "dir_pin": dir_pin,
-                "enable_pin": en_pin
-            }
-
-            driver_type = user_data.get("driver_type") or "None (Standard)"
-            driver_mode = user_data.get("driver_mode") or ""
-            if "TMC" in driver_type and driver_mode in ["UART", "SPI"]:
-                uart_pin = questionary.text(
-                    t("wizard.custom_uart_pin", mode=driver_mode.lower(), motor=motor_name),
-                    style=custom_style
-                ).ask()
-                if not uart_pin:
-                    print(f"\n\033[91m{t('kace.abort_no_uart', mode=driver_mode)}\033[0m")
-                    raise WizardExit()
-                tmc_section = f"{driver_type.lower()} {motor_name}"
-                pin_key = "uart_pin" if driver_mode == "UART" else "cs_pin"
-                parsed_data[tmc_section] = {pin_key: uart_pin, "run_current": "0.650"}
-            assigned_drivers[motor_name] = "custom"
-        else:
-            src_data = parsed_data.get(selected_driver)
-            if src_data is None:
-                if _parsed_full is None:
-                    _parsed_full = parse_config(
-                        raw_cfg,
-                        user_data.get('board', ''),
-                        keep_comments=True
-                    )
-                src_data = _parsed_full.get(selected_driver, {})
-
-            parsed_data[motor_name] = {
-                "step_pin":    src_data.get("step_pin", ""),
-                "dir_pin":     src_data.get("dir_pin", ""),
-                "enable_pin":  src_data.get("enable_pin", ""),
-            }
-
-            driver_type = user_data.get("driver_type") or "None (Standard)"
-            driver_mode = user_data.get("driver_mode") or ""
-            if "TMC" in driver_type:
-                dest_tmc = f"{driver_type.lower()} {motor_name}"
-                found_tmc = False
-                for possible_tmc in ["tmc2209", "tmc2208", "tmc2130", "tmc5160", "tmc2225", "tmc2240"]:
-                    src_tmc = f"{possible_tmc} {selected_driver}"
-                    tmc_src_data = parsed_data.get(src_tmc)
-                    if tmc_src_data is None and _parsed_full is not None:
-                        tmc_src_data = _parsed_full.get(src_tmc)
-                    if tmc_src_data is not None:
-                        parsed_data[dest_tmc] = tmc_src_data.copy()
-                        if src_tmc in parsed_data:
-                            del parsed_data[src_tmc]
-                        found_tmc = True
-                        break
-                if not found_tmc and driver_mode in ["UART", "SPI"]:
-                    print(f"\n\033[91m{t('kace.abort_no_tmc_map', mode=driver_mode, driver=selected_driver)}\033[0m")
-                    print(f"\033[93m{t('kace.abort_generation')}\033[0m")
-                    raise WizardExit()
-
-            if selected_driver in parsed_data:
-                del parsed_data[selected_driver]
-            available_driver_sockets = [
-                (k, l) for k, l in available_driver_sockets
-                if k != selected_driver
-            ]
-            assigned_drivers[motor_name] = selected_driver
-
-        z_idx += 1
-
-    return True

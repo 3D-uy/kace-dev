@@ -371,9 +371,46 @@ def _load_boards_db() -> list:
         return []
 
 
-# Module-level cache — loaded once per process
-_DISPLAY_CONFIGS, _PRINTER_PROFILES, _BOARD_DISPLAY_MATRIX, _DISPLAY_CATALOG = _load_display_db()
-_BOARDS = _load_boards_db()
+# Module-level cache — loaded once per process when accessed
+_DISPLAY_CONFIGS = None
+_PRINTER_PROFILES = None
+_BOARD_DISPLAY_MATRIX = None
+_DISPLAY_CATALOG = None
+_BOARDS = None
+
+def _ensure_display_db_loaded():
+    global _DISPLAY_CONFIGS, _PRINTER_PROFILES, _BOARD_DISPLAY_MATRIX, _DISPLAY_CATALOG
+    _DISPLAY_CONFIGS, _PRINTER_PROFILES, _BOARD_DISPLAY_MATRIX, _DISPLAY_CATALOG = _load_display_db()
+
+def _get_display_configs() -> dict:
+    global _DISPLAY_CONFIGS
+    if _DISPLAY_CONFIGS is None:
+        _ensure_display_db_loaded()
+    return _DISPLAY_CONFIGS
+
+def _get_printer_profiles() -> dict:
+    global _PRINTER_PROFILES
+    if _PRINTER_PROFILES is None:
+        _ensure_display_db_loaded()
+    return _PRINTER_PROFILES
+
+def _get_board_display_matrix() -> dict:
+    global _BOARD_DISPLAY_MATRIX
+    if _BOARD_DISPLAY_MATRIX is None:
+        _ensure_display_db_loaded()
+    return _BOARD_DISPLAY_MATRIX
+
+def _get_display_catalog() -> dict:
+    global _DISPLAY_CATALOG
+    if _DISPLAY_CATALOG is None:
+        _ensure_display_db_loaded()
+    return _DISPLAY_CATALOG
+
+def _get_boards() -> list:
+    global _BOARDS
+    if _BOARDS is None:
+        _BOARDS = _load_boards_db()
+    return _BOARDS
 
 
 def detect_display_sections(parsed_cfg: dict) -> list:
@@ -400,7 +437,7 @@ def _match_printer_profile(printer_filename: str) -> tuple[str, dict] | tuple[No
     Checked before display_configs — printer profile takes precedence.
     """
     fname_lower = printer_filename.lower()
-    for profile_key, profile_data in _PRINTER_PROFILES.items():
+    for profile_key, profile_data in _get_printer_profiles().items():
         if profile_key in fname_lower:
             return profile_key, profile_data
     return None, None
@@ -410,7 +447,7 @@ def _find_board_entry(board_filename: str) -> dict | None:
     if not board_filename:
         return None
     fname_lower = board_filename.lower()
-    for board in _BOARDS:
+    for board in _get_boards():
         for term in board.get("search_terms", []):
             if term.lower() in fname_lower:
                 return board
@@ -519,11 +556,11 @@ def classify_hardware_combination(
     board_lower = board_filename.lower()
 
     # 1. Check board-display matrix overrides first
-    for b_sub, displays_in_matrix in _BOARD_DISPLAY_MATRIX.items():
+    for b_sub, displays_in_matrix in _get_board_display_matrix().items():
         if b_sub.lower() in board_lower:
             for d_sub, override_data in displays_in_matrix.items():
                 if d_sub.lower() in display_lower:
-                    display_entry = _DISPLAY_CONFIGS.get(display_lower, {})
+                    display_entry = _get_display_configs().get(display_lower, {})
                     comp_class = override_data.get("compatibility_class", display_entry.get("compatibility_class", "experimental"))
                     
                     status_map = {
@@ -554,7 +591,7 @@ def classify_hardware_combination(
                     }
 
     # 2. Fall back to generic display entry lookups
-    display_entry = _DISPLAY_CONFIGS.get(display_lower)
+    display_entry = _get_display_configs().get(display_lower)
     if not display_entry:
         return {
             "compatibility_class": "experimental",
@@ -662,8 +699,8 @@ def get_display_compat(section_name: str, printer_filename: str = "") -> dict | 
 
     # 2. Try section-based lookup
     section_lower = section_name.lower().split()[0]
-    if section_lower in _DISPLAY_CONFIGS:
-        entry = _DISPLAY_CONFIGS[section_lower]
+    if section_lower in _get_display_configs():
+        entry = _get_display_configs()[section_lower]
         comp_class = entry.get("compatibility_class", "experimental")
         return {
             "status":                 entry.get("status", "untested"),
@@ -760,7 +797,7 @@ def get_display_catalog() -> dict:
       label   — human-readable category name
       members — list of display_configs section keys in this category
     """
-    return dict(_DISPLAY_CATALOG)
+    return dict(_get_display_catalog())
 
 
 def get_all_selectable_displays() -> list:
@@ -768,7 +805,7 @@ def get_all_selectable_displays() -> list:
     entries that a user could physically select (excludes software-only sections).
     """
     result = []
-    for key, entry in _DISPLAY_CONFIGS.items():
+    for key, entry in _get_display_configs().items():
         if key in _WIZARD_SKIP_SECTIONS:
             continue
         result.append((key, entry))
@@ -812,7 +849,7 @@ def get_recommended_displays(
         "unsafe":                  [],
     }
 
-    for section_key, entry in _DISPLAY_CONFIGS.items():
+    for section_key, entry in _get_display_configs().items():
         if section_key in _WIZARD_SKIP_SECTIONS:
             continue
 
@@ -881,7 +918,7 @@ def run_manual_selection_analysis(
     # ── Voltage validation ────────────────────────────────────────────────────
     board_voltage    = _infer_board_voltage(board_filename, parsed_cfg)
     board_tolerance  = _infer_board_tolerance(board_filename, parsed_cfg)
-    display_entry    = _DISPLAY_CONFIGS.get(display_key_lower, {})
+    display_entry    = _get_display_configs().get(display_key_lower, {})
     display_voltage  = display_entry.get("voltage_logic", "any")
 
     if display_voltage == "any":

@@ -81,7 +81,13 @@ def _load_firmware_db() -> list:
         return _FW_DB_FALLBACK
 
 # Module-level cache — loaded once per process
-_FW_DB = _load_firmware_db()
+_FW_DB = None
+
+def _get_fw_db() -> list:
+    global _FW_DB
+    if _FW_DB is None:
+        _FW_DB = _load_firmware_db()
+    return _FW_DB
 
 
 def derive_config(mcu, hint=None, flash_start=None):
@@ -109,7 +115,7 @@ def derive_config(mcu, hint=None, flash_start=None):
     else:
         # Find the first matching entry in the database
         matched = None
-        for entry in _FW_DB:
+        for entry in _get_fw_db():
             if entry["pattern"] in mcu:
                 matched = entry
                 break

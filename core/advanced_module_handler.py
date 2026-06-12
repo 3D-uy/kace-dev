@@ -103,7 +103,13 @@ def _load_schemas() -> list:
     return _FALLBACK_SCHEMAS
 
 
-_SCHEMAS: list = _load_schemas()
+_SCHEMAS: list = None
+
+def _get_schemas() -> list:
+    global _SCHEMAS
+    if _SCHEMAS is None:
+        _SCHEMAS = _load_schemas()
+    return _SCHEMAS
 
 
 # ---------------------------------------------------------------------------
@@ -113,7 +119,7 @@ _SCHEMAS: list = _load_schemas()
 def _schema_for(section_name: str) -> dict | None:
     """Return the first schema whose section_prefix appears in section_name."""
     sl = section_name.lower()
-    for schema in _SCHEMAS:
+    for schema in _get_schemas():
         if schema["section_prefix"] in sl:
             return schema
     return None

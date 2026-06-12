@@ -27,6 +27,7 @@ if len(sys.argv) > 1:
             os.environ["KACE_AUTO"] = "1"
 
 import questionary
+from core.validators import questionary_pin_validator
 
 if os.environ.get("KACE_AUTO") == "1":
     print("\n\033[93m[AUTO MODE]\033[0m User interactions disabled. Using safe defaults for all prompts.", flush=True)
@@ -279,6 +280,7 @@ def main():
                 if _missing_sensor:
                     _sp = questionary.text(
                         "BLTouch sensor_pin (e.g. ^PB7 or ^PC5):",
+                        validate=questionary_pin_validator,
                         style=custom_style
                     ).ask()
                     if not _sp:
@@ -288,6 +290,7 @@ def main():
                 if _missing_control:
                     _cp = questionary.text(
                         "BLTouch control_pin (e.g. PB6 or PE5):",
+                        validate=questionary_pin_validator,
                         style=custom_style
                     ).ask()
                     if not _cp:

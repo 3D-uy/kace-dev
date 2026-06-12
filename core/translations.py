@@ -300,6 +300,76 @@ UI_STRINGS: dict = {
         "Español":   "Salir de la configuración",
         "Português": "Sair da configuração",
     },
+    "choice.continue": {
+        "English":   "✓  Continue",
+        "Español":   "✓  Continuar",
+        "Português": "✓  Continuar",
+    },
+    "choice.edit_profile": {
+        "English":   "⚙  Edit Profile",
+        "Español":   "⚙  Editar Perfil",
+        "Português": "⚙  Editar Perfil",
+    },
+    "choice.arrow_back": {
+        "English":   "◀  Back",
+        "Español":   "◀  Volver",
+        "Português": "◀  Voltar",
+    },
+    "choice.back_discard": {
+        "English":   "◀  Back (discard)",
+        "Español":   "◀  Volver (descartar)",
+        "Português": "◀  Voltar (descartar)",
+    },
+    "wizard.profile_review_prompt": {
+        "English":   "What would you like to do?",
+        "Español":   "¿Qué desea hacer?",
+        "Português": "O que você gostaria de fazer?",
+    },
+    "wizard.profile_editor_prompt": {
+        "English":   "Select a field to edit, or save:",
+        "Español":   "Seleccione un campo para editar, o guarde:",
+        "Português": "Selecione um campo para editar ou salvar:",
+    },
+    "choice.save_continue": {
+        "English":   "✓  Save & Continue",
+        "Español":   "✓  Guardar y Continuar",
+        "Português": "✓  Salvar e Continuar",
+    },
+    "choice.editor_kinematics": {
+        "English":   " 1. Kinematics",
+        "Español":   " 1. Cinemática",
+        "Português": " 1. Cinemática",
+    },
+    "choice.editor_volume": {
+        "English":   " 2. Build Volume",
+        "Español":   " 2. Volumen de Construcción",
+        "Português": " 2. Volume de Impressão",
+    },
+    "choice.editor_x_limits": {
+        "English":   "3-5. X Axis Limits",
+        "Español":   "3-5. Límites del Eje X",
+        "Português": "3-5. Limites do Eixo X",
+    },
+    "choice.editor_y_limits": {
+        "English":   "6-8. Y Axis Limits",
+        "Español":   "6-8. Límites del Eje Y",
+        "Português": "6-8. Limites do Eixo Y",
+    },
+    "choice.editor_z_limits": {
+        "English":   "9-11. Z Axis Limits",
+        "Español":   "9-11. Límites del Eje Z",
+        "Português": "9-11. Limites do Eixo Z",
+    },
+    "choice.editor_hotend_thermistor": {
+        "English":   "12. Hotend Thermistor",
+        "Español":   "12. Termistor del Hotend",
+        "Português": "12. Termistor do Hotend",
+    },
+    "choice.editor_bed_thermistor": {
+        "English":   "13. Bed Thermistor",
+        "Español":   "13. Termistor de la Cama",
+        "Português": "13. Termistor da Mesa",
+    },
     # ── Dashboard strings ───────────────────────────────────────
     "dashboard.status_title": {
         "English":   "System Status",

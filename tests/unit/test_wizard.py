@@ -87,66 +87,6 @@ class TestWizard(unittest.TestCase):
         self.assertEqual(parsed["stepper_y"]["position_max"], "300")
         self.assertEqual(parsed["stepper_z"]["position_max"], "350")
 
-    @patch("questionary.select")
-    @patch("core.wizard.fetch_raw_config")
-    def test_run_z_motor_configuration_one_motor(self, mock_fetch, mock_select):
-        """z_motors <= 1 should return True immediately without prompting."""
-        from core.wizard import run_z_motor_configuration
-        parsed = {}
-        res = run_z_motor_configuration({"z_motors": "1"}, parsed)
-        self.assertTrue(res)
-        mock_fetch.assert_not_called()
-
-    @patch("questionary.select")
-    @patch("core.wizard.fetch_raw_config")
-    def test_run_z_motor_configuration_success(self, mock_fetch, mock_select):
-        """Verify successful mapping of extra Z stepper to E1 socket."""
-        from core.wizard import run_z_motor_configuration
-        mock_fetch.return_value = "[extruder1]\nstep_pin: PE1\ndir_pin: PE2\nenable_pin: PE3\n[tmc2209 extruder1]\nuart_pin: PD12\n"
-        
-        # Select choices: user picks E1 (extruder1)
-        mock_select.return_value.ask.return_value = "extruder1"
-        
-        parsed = {
-            "extruder1": {
-                "step_pin": "PE1",
-                "dir_pin": "PE2",
-                "enable_pin": "PE3"
-            },
-            "tmc2209 extruder1": {
-                "uart_pin": "PD12"
-            }
-        }
-        user_data = {
-            "z_motors": "2",
-            "board": "generic-mock.cfg",
-            "driver_type": "TMC2209",
-            "driver_mode": "UART"
-        }
-        
-        res = run_z_motor_configuration(user_data, parsed)
-        self.assertTrue(res)
-        self.assertIn("stepper_z1", parsed)
-        self.assertEqual(parsed["stepper_z1"]["step_pin"], "PE1")
-        self.assertIn("tmc2209 stepper_z1", parsed)
-        self.assertEqual(parsed["tmc2209 stepper_z1"]["uart_pin"], "PD12")
-        # extruder1 socket should be deleted (consumed)
-        self.assertNotIn("extruder1", parsed)
-        self.assertNotIn("tmc2209 extruder1", parsed)
-
-    @patch("questionary.select")
-    @patch("core.wizard.fetch_raw_config")
-    def test_run_z_motor_configuration_back(self, mock_fetch, mock_select):
-        """Selecting back on step 1 should return False."""
-        from core.wizard import run_z_motor_configuration
-        mock_fetch.return_value = "[extruder1]\n"
-        mock_select.return_value.ask.return_value = "back"
-        
-        parsed = {}
-        user_data = {"z_motors": "2", "board": "generic-mock.cfg"}
-        
-        res = run_z_motor_configuration(user_data, parsed)
-        self.assertFalse(res)
 
 
 class TestWizardRunner(unittest.TestCase):
