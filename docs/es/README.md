@@ -5,8 +5,8 @@
 <h1 align="center">🚀 KACE — Klipper Automated Configuration Ecosystem</h1>
 
 <p align="center">
-  <a href="https://github.com/3D-uy/kace/actions/workflows/ci.yml">
-    <img src="https://github.com/3D-uy/kace/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI">
+  <a href="https://github.com/3D-uy/kace-dev/actions/workflows/ci.yml">
+    <img src="https://github.com/3D-uy/kace-dev/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI">
   </a>
   <img src="https://img.shields.io/badge/version-v0.9.2-blue?style=flat-square" alt="Versión">
   <img src="https://img.shields.io/badge/configs%20validadas-192-brightgreen?style=flat-square" alt="Configs Validadas">

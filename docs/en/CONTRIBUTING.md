@@ -3,6 +3,13 @@
 Thank you for considering a contribution to KACE.
 This guide explains how to add new boards, create snapshots, and submit safe PRs.
 
+## Repository Structure & Relationship
+
+KACE is managed across two repositories to coordinate releases safely:
+
+- **`3D-uy/kace` (Production/Stable)**: The main stable, user-facing repository. Production installer scripts target verified release tags on this channel.
+- **`3D-uy/kace-dev` (Development/Pre-release)**: The staging repository for audits, pre-release candidate validation, and CI sweep builds. Contributions and pull requests should target `kace-dev` for verification before being promoted to the stable production repository.
+
 ---
 
 ## Development Setup
