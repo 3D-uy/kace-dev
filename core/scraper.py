@@ -67,6 +67,9 @@ def get_bltouch_pins_for_board(board_name: str) -> dict:
 
     Searches ``_BLTOUCH_DB`` (populated from ``data/boards.yaml``) for the
     first key that is a substring of *board_name* (case-insensitive).
+    Keys are matched longest-first so that specific names like
+    ``"octopus-pro"`` always win over shorter substrings like ``"octopus"``,
+    regardless of the order they appear in boards.yaml.
     Returns a dict with ``sensor_pin`` and ``control_pin`` keys, or ``{}``
     when no entry matches.
 
@@ -77,7 +80,8 @@ def get_bltouch_pins_for_board(board_name: str) -> dict:
     if not board_name:
         return {}
     fname = board_name.lower()
-    for board_key, pins in _get_bltouch_db().items():
+    # Sort longest key first — ensures "octopus-pro" matches before "octopus"
+    for board_key, pins in sorted(_get_bltouch_db().items(), key=lambda x: -len(x[0])):
         if board_key in fname:
             return dict(pins)
     return {}
@@ -301,14 +305,12 @@ def parse_config(raw_cfg, filename="", keep_comments=False):
     if "bltouch" not in data:
         data["bltouch"] = {}
 
-    fname = filename.lower()
-    for board_key, pins in _get_bltouch_db().items():
-        if board_key in fname:
-            if "sensor_pin" not in data["bltouch"]:
-                data["bltouch"]["sensor_pin"] = pins["sensor_pin"]
-            if "control_pin" not in data["bltouch"]:
-                data["bltouch"]["control_pin"] = pins["control_pin"]
-            break  # first match wins — most specific keys should come first in YAML
+    pins = get_bltouch_pins_for_board(filename)
+    if pins:
+        if "sensor_pin" not in data["bltouch"]:
+            data["bltouch"]["sensor_pin"] = pins["sensor_pin"]
+        if "control_pin" not in data["bltouch"]:
+            data["bltouch"]["control_pin"] = pins["control_pin"]
 
     return data
 
