@@ -4,6 +4,8 @@ import re
 import os
 import time
 
+CACHE_EXPIRY_SECONDS = 3 * 24 * 3600  # 3 days cache duration
+
 # ── Modular BLTouch database ───────────────────────────────────────────────────
 # Loaded from data/boards.yaml. Hardcoded dict is the fallback when YAML is
 # missing (e.g., older installs or partial clones).
@@ -50,8 +52,14 @@ def _load_bltouch_db() -> dict:
     except Exception:
         return _BLTOUCH_FALLBACK
 
-# Module-level cache — loaded once per process
-_BLTOUCH_DB = _load_bltouch_db()
+# Lazy-loaded cache module-level database
+_BLTOUCH_DB = None
+
+def _get_bltouch_db() -> dict:
+    global _BLTOUCH_DB
+    if _BLTOUCH_DB is None:
+        _BLTOUCH_DB = _load_bltouch_db()
+    return _BLTOUCH_DB
 
 
 def get_bltouch_pins_for_board(board_name: str) -> dict:
@@ -69,7 +77,7 @@ def get_bltouch_pins_for_board(board_name: str) -> dict:
     if not board_name:
         return {}
     fname = board_name.lower()
-    for board_key, pins in _BLTOUCH_DB.items():
+    for board_key, pins in _get_bltouch_db().items():
         if board_key in fname:
             return dict(pins)
     return {}
@@ -79,10 +87,10 @@ def fetch_config_list():
     """Fetches the list of generic and printer configs from Klipper GitHub."""
     cache_file = os.path.expanduser("~/.kace_boards_cache.json")
     
-    # 1. Check persistent cache first (valid for 3 days)
+    # 1. Check persistent cache first (valid for CACHE_EXPIRY_SECONDS)
     try:
         if os.path.exists(cache_file):
-            if time.time() - os.path.getmtime(cache_file) < 3 * 24 * 3600:
+            if time.time() - os.path.getmtime(cache_file) < CACHE_EXPIRY_SECONDS:
                 with open(cache_file, 'r', encoding='utf-8') as f:
                     configs = json.load(f)
                     if configs:
@@ -117,6 +125,9 @@ def fetch_config_list():
                 matches_url = re.findall(r'href="/Klipper3d/klipper/blob/[^/]+/config/((?:generic|printer)-.*?\.cfg)"', html)
                 configs = list(set(matches + matches_url))
                 
+                if not configs:
+                    print("\n\033[93m[DEBUG] HTML scraping regex returned zero matches.\033[0m")
+                
                 if configs:
                     configs = sorted(configs)
                     try:
@@ -147,12 +158,12 @@ def fetch_raw_config(filename):
         try: os.makedirs(cache_dir)
         except Exception: pass
         
-    cache_file = os.path.join(cache_dir, filename)
+    cache_file = os.path.join(cache_dir, os.path.basename(filename))
     
-    # 1. Check cache first (valid for 3 days)
+    # 1. Check cache first (valid for CACHE_EXPIRY_SECONDS)
     try:
         if os.path.exists(cache_file):
-            if time.time() - os.path.getmtime(cache_file) < 3 * 24 * 3600:
+            if time.time() - os.path.getmtime(cache_file) < CACHE_EXPIRY_SECONDS:
                 with open(cache_file, 'r', encoding='utf-8') as f:
                     return f.read()
     except Exception:
@@ -290,7 +301,7 @@ def parse_config(raw_cfg, filename="", keep_comments=False):
         data["bltouch"] = {}
 
     fname = filename.lower()
-    for board_key, pins in _BLTOUCH_DB.items():
+    for board_key, pins in _get_bltouch_db().items():
         if board_key in fname:
             if "sensor_pin" not in data["bltouch"]:
                 data["bltouch"]["sensor_pin"] = pins["sensor_pin"]
@@ -462,7 +473,6 @@ def get_reusable_driver_sockets(raw_cfg: str, board_name: str = "") -> list:
     Returns:
         Sorted list of ``(key, label)`` tuples ready for wizard consumption.
     """
-    import re
     sockets: list = []
     seen: set = set()
 
@@ -567,7 +577,6 @@ def detect_fan_pins(raw_cfg: str) -> list:
     Returns a list of dicts:
         [{"pin": "PA8", "label": "Part Cooling Fan (PA8)", "section": "fan"}, ...]
     """
-    import re
     # Find all section headers (active or commented out)
     # E.g. [fan], #[heater_fan fan1], # [fan]
     matches = list(re.finditer(r'^#?\s*\[([a-zA-Z0-9_]+(?:\s+[^\]]+)?)\]', raw_cfg, re.MULTILINE))
