@@ -126,7 +126,8 @@ def fetch_config_list():
                 configs = list(set(matches + matches_url))
                 
                 if not configs:
-                    print("\n\033[93m[DEBUG] HTML scraping regex returned zero matches.\033[0m")
+                    if os.environ.get("KACE_DEBUG") == "1":
+                        print("\n\033[93m[DEBUG] HTML scraping regex returned zero matches.\033[0m")
                 
                 if configs:
                     configs = sorted(configs)
