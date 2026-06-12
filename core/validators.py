@@ -2,11 +2,11 @@
 import re
 
 def validate_klipper_pin(s: str) -> bool:
-    """Validate that a string is a valid Klipper pin identifier.
+    """Validate a Klipper pin name.
 
-    Klipper pin format allows pull-up (^), pull-down (~), and invert (!) prefixes
-    in any order or combination, followed by an alphanumeric name which can also
-    contain underscores or dots (e.g. PA1, PC14, ar2, gpio22, etc.).
+    Leading/trailing whitespace is stripped before validation — " PA0" is
+    treated as "PA0" and considered valid. Internal whitespace is rejected.
+    Accepts optional prefix chars: !, ^, ~ (combinable, e.g. !^PA0).
     """
     if not s:
         return False
