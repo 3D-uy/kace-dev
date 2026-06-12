@@ -1,0 +1,2 @@
+# Optional SSH deployment dependency — source for pip-compile
+paramiko==3.4.0

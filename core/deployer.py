@@ -21,9 +21,10 @@ def _require_paramiko():
         print("\033[93m[*] SSH support requires the 'paramiko' library.\033[0m")
         print("\033[93m[*] Downloading and installing (this may take a moment)...\033[0m")
         try:
-            # Use check_output instead of check_call to capture errors silently on success,
-            # but show them on failure.
-            pip_cmd = [sys.executable, "-m", "pip", "install", "paramiko==3.4.0"]
+            # Locate requirements-ssh.txt relative to this file to enforce hash verification
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            req_path = os.path.abspath(os.path.join(current_dir, "..", "requirements-ssh.txt"))
+            pip_cmd = [sys.executable, "-m", "pip", "install", "-r", req_path, "--require-hashes"]
             if platform.system() != "Windows":
                 pip_cmd.append("--break-system-packages")
             subprocess.check_output(
@@ -55,6 +56,7 @@ def _require_paramiko():
 
 def deploy_config(user_data):
     """Deploys the generated printer.cfg to the Klipper host via SSH/SCP."""
+    # Wipes password from user_data immediately to reduce the credential exposure window
     password = user_data.pop('password', '')
     paramiko = _require_paramiko()
     if paramiko is None:

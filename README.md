@@ -44,13 +44,32 @@ An **intelligent configuration and firmware engine** that:
 
 ---
 
-## ⚡ One-Line Install
+## ⚡ Installation
+
+For production deployments, the installer is pinned to the release tag (`v0.9.0`) and dependencies are hash-verified.
+
+### Secure Verification (Recommended)
+Verify the installer script before running it:
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/3D-uy/KACE/main/install.sh)
+# 1. Download the pinned installer script
+curl -sSL -o install.sh https://raw.githubusercontent.com/3D-uy/kace-dev/v0.9.0/install.sh
+
+# 2. Inspect/verify the script (e.g. SHA-256 hash check)
+sha256sum install.sh
+
+# 3. Run the installer
+bash install.sh
 ```
 
-> Installs all dependencies, clones the repository (shallow + sparse), and sets up the global `kace` command automatically.
+### Quick Install
+Alternatively, run the installer directly:
+
+```bash
+bash <(curl -sSL https://raw.githubusercontent.com/3D-uy/kace-dev/v0.9.0/install.sh)
+```
+
+> Installs all dependencies with pip hash validation, clones the repository pinned to `v0.9.0` (shallow + sparse), and sets up the global `kace` command.
 
 ---
 
