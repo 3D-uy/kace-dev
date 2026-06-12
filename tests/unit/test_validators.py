@@ -11,7 +11,7 @@ class TestValidators(unittest.TestCase):
                 self.assertTrue(questionary_pin_validator(p))
 
     def test_invalid_pins(self):
-        invalid = ["", "   ", "PA1$", "P@1", "P A1", "PA-1", "PB6#"]
+        invalid = ["", "   ", "PA1$", "P@1", "P A1", "PA-1", "PB6#", "!^", "~", "PA 0", "../bad"]
         for p in invalid:
             with self.subTest(pin=p):
                 self.assertFalse(validate_klipper_pin(p))
