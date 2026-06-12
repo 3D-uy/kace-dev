@@ -215,9 +215,60 @@ class TestDeployer(unittest.TestCase):
         from core.deployer import deploy_moonraker
         deploy_moonraker({})
         
-        mock_check.assert_called_once_with("192.168.1.50", 7125)
+        mock_check.assert_called_once_with("192.168.1.50", 7125, api_key="")
+        mock_upload.assert_called_once_with("192.168.1.50", 7125, mock_upload.call_args[0][2], api_key="")
+        mock_restart.assert_called_once_with("192.168.1.50", 7125, api_key="")
+
+    @patch('questionary.text')
+    @patch('questionary.confirm')
+    @patch('questionary.select')
+    @patch('core.moonraker.check_moonraker')
+    @patch('core.moonraker.upload_printer_cfg')
+    @patch('core.moonraker.restart_firmware')
+    @patch('builtins.print')
+    def test_deploy_moonraker_warning_http_accepted(self, mock_print, mock_restart, mock_upload, mock_check, mock_select, mock_confirm, mock_text):
+        """Test http warning triggered and accepted by user."""
+        mock_text.side_effect = [
+            MagicMock(ask=lambda: "http://192.168.1.50"), # host starts with http://
+            MagicMock(ask=lambda: "7125"),          # port
+            MagicMock(ask=lambda: "secret_key"),    # api key
+        ]
+        mock_confirm.side_effect = [
+            MagicMock(ask=lambda: True),            # Warning confirm: Yes
+        ]
+        mock_check.return_value = (True, "v0.1.0")
+        mock_upload.return_value = (True, "Success")
+        mock_select.return_value = MagicMock(ask=lambda: "firmware")
+        mock_restart.return_value = (True, "Restarted")
+        
+        from core.deployer import deploy_moonraker
+        deploy_moonraker({})
+        
+        mock_check.assert_called_once_with("http://192.168.1.50", 7125, api_key="secret_key")
         mock_upload.assert_called_once()
-        mock_restart.assert_called_once_with("192.168.1.50", 7125)
+        mock_restart.assert_called_once_with("http://192.168.1.50", 7125, api_key="secret_key")
+
+    @patch('questionary.text')
+    @patch('questionary.confirm')
+    @patch('core.moonraker.check_moonraker')
+    @patch('builtins.print')
+    def test_deploy_moonraker_warning_http_rejected(self, mock_print, mock_check, mock_confirm, mock_text):
+        """Test http warning triggered and rejected by user, aborting deploy."""
+        mock_text.side_effect = [
+            MagicMock(ask=lambda: "192.168.1.50"),  # host (implicitly http://)
+            MagicMock(ask=lambda: "7125"),          # port
+            MagicMock(ask=lambda: "secret_key"),    # api key
+        ]
+        mock_confirm.side_effect = [
+            MagicMock(ask=lambda: False),           # Warning confirm: No
+        ]
+        
+        from core.deployer import deploy_moonraker
+        deploy_moonraker({})
+        
+        mock_check.assert_not_called()
+        printed = [c[0][0] for c in mock_print.call_args_list]
+        self.assertTrue(any("cancelled for security reasons" in msg or "cancelado" in msg or "cancelado" in msg for msg in printed))
 
     @patch('questionary.text')
     @patch('core.moonraker.check_moonraker')

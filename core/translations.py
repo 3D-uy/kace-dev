@@ -588,6 +588,16 @@ UI_STRINGS: dict = {
         "Español":   "Ingrese la clave API de Moonraker (deje en blanco si no es necesaria):",
         "Português": "Digite a chave de API do Moonraker (deixe em branco se não for necessária):",
     },
+    "moonraker.http_warning": {
+        "English":   "⚠️  WARNING: You entered an API key, but the connection is using unencrypted plain HTTP. Sending your API key over HTTP can expose it.\n  Are you sure you want to continue?",
+        "Español":   "⚠️  ADVERTENCIA: Ingresó una clave API, pero la conexión utiliza HTTP no cifrado. Enviar su clave API por HTTP puede exponerla.\n  ¿Está seguro de que desea continuar?",
+        "Português": "⚠️  AVISO: Você inseriu uma chave de API, mas a conexão está usando HTTP comum não criptografado. Enviar sua chave de API via HTTP pode expô-la.\n  Tem certeza de que deseja continuar?",
+    },
+    "moonraker.http_warning_cancelled": {
+        "English":   "Moonraker deployment cancelled for security reasons.",
+        "Español":   "Despliegue de Moonraker cancelado por razones de seguridad.",
+        "Português": "Deploy do Moonraker cancelado por motivos de segurança.",
+    },
     "moonraker.connecting": {
         "English":   "Connecting to Moonraker at {host}:{port}...",
         "Español":   "Conectando a Moonraker en {host}:{port}...",

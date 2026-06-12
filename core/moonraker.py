@@ -32,10 +32,13 @@ def _base_url(host: str, port: int) -> str:
     return f"{host}:{port}"
 
 
-def _get(url: str) -> tuple[bool, str, dict]:
+def _get(url: str, api_key: str = None) -> tuple[bool, str, dict]:
     """Perform a GET request and return (success, message, json_body)."""
     try:
-        req = urllib.request.Request(url, headers={"Accept": "application/json"})
+        headers = {"Accept": "application/json"}
+        if api_key:
+            headers["X-Api-Key"] = api_key
+        req = urllib.request.Request(url, headers=headers)
         with urllib.request.urlopen(req, timeout=_TIMEOUT) as resp:
             body = json.loads(resp.read().decode("utf-8", errors="replace"))
             return True, "OK", body
@@ -47,16 +50,19 @@ def _get(url: str) -> tuple[bool, str, dict]:
         return False, f"Unexpected error: {e}", {}
 
 
-def _post(url: str, data: bytes = b"", content_type: str = "application/json") -> tuple[bool, str, dict]:
+def _post(url: str, data: bytes = b"", content_type: str = "application/json", api_key: str = None) -> tuple[bool, str, dict]:
     """Perform a POST request and return (success, message, json_body)."""
     try:
+        headers = {
+            "Content-Type": content_type,
+            "Accept": "application/json",
+        }
+        if api_key:
+            headers["X-Api-Key"] = api_key
         req = urllib.request.Request(
             url,
             data=data,
-            headers={
-                "Content-Type": content_type,
-                "Accept": "application/json",
-            },
+            headers=headers,
             method="POST",
         )
         with urllib.request.urlopen(req, timeout=_TIMEOUT) as resp:
@@ -75,7 +81,7 @@ def _post(url: str, data: bytes = b"", content_type: str = "application/json") -
         return False, f"Unexpected error: {e}", {}
 
 
-def _post_multipart(url: str, field_name: str, filename: str, file_bytes: bytes, root: str = "config") -> tuple[bool, str, dict]:
+def _post_multipart(url: str, field_name: str, filename: str, file_bytes: bytes, root: str = "config", api_key: str = None) -> tuple[bool, str, dict]:
     """POST a file as multipart/form-data to the Moonraker file upload endpoint."""
     boundary = uuid.uuid4().hex
     crlf = b"\r\n"
@@ -103,12 +109,12 @@ def _post_multipart(url: str, field_name: str, filename: str, file_bytes: bytes,
     body = crlf.join(parts)
     content_type = f"multipart/form-data; boundary={boundary}"
 
-    return _post(url, data=body, content_type=content_type)
+    return _post(url, data=body, content_type=content_type, api_key=api_key)
 
 
 # ── Public API ───────────────────────────────────────────────────
 
-def check_moonraker(host: str, port: int = DEFAULT_PORT) -> tuple[bool, str]:
+def check_moonraker(host: str, port: int = DEFAULT_PORT, api_key: str = None) -> tuple[bool, str]:
     """Probe Moonraker reachability via GET /server/info.
 
     Returns:
@@ -116,14 +122,14 @@ def check_moonraker(host: str, port: int = DEFAULT_PORT) -> tuple[bool, str]:
         (False, error_message) on failure.
     """
     url = f"{_base_url(host, port)}/server/info"
-    ok, msg, body = _get(url)
+    ok, msg, body = _get(url, api_key=api_key)
     if not ok:
         return False, msg
     version = body.get("result", {}).get("moonraker_version", "unknown")
     return True, f"Moonraker {version}"
 
 
-def upload_printer_cfg(host: str, port: int, cfg_path: str, filename: str = None) -> tuple[bool, str]:
+def upload_printer_cfg(host: str, port: int, cfg_path: str, filename: str = None, api_key: str = None) -> tuple[bool, str]:
     """Upload a configuration file to Moonraker's config root via /server/files/upload.
 
     If filename is not explicitly provided, it defaults to the basename of the cfg_path.
@@ -148,6 +154,7 @@ def upload_printer_cfg(host: str, port: int, cfg_path: str, filename: str = None
         filename=filename,
         file_bytes=file_bytes,
         root="config",
+        api_key=api_key,
     )
     if not ok:
         return False, msg
@@ -157,7 +164,7 @@ def upload_printer_cfg(host: str, port: int, cfg_path: str, filename: str = None
     return True, uploaded_path
 
 
-def restart_firmware(host: str, port: int = DEFAULT_PORT) -> tuple[bool, str]:
+def restart_firmware(host: str, port: int = DEFAULT_PORT, api_key: str = None) -> tuple[bool, str]:
     """Issue a FIRMWARE_RESTART via POST /printer/firmware_restart.
 
     This reloads printer.cfg and restarts the Klipper firmware process.
@@ -168,13 +175,13 @@ def restart_firmware(host: str, port: int = DEFAULT_PORT) -> tuple[bool, str]:
         (False, error_message) on failure.
     """
     url = f"{_base_url(host, port)}/printer/firmware_restart"
-    ok, msg, _ = _post(url, data=b"{}", content_type="application/json")
+    ok, msg, _ = _post(url, data=b"{}", content_type="application/json", api_key=api_key)
     if not ok:
         return False, msg
     return True, "FIRMWARE_RESTART issued"
 
 
-def restart_klipper_service(host: str, port: int = DEFAULT_PORT) -> tuple[bool, str]:
+def restart_klipper_service(host: str, port: int = DEFAULT_PORT, api_key: str = None) -> tuple[bool, str]:
     """Restart the Klipper system service via Moonraker's machine API.
 
     POST /machine/services/restart?service=klipper
@@ -185,7 +192,7 @@ def restart_klipper_service(host: str, port: int = DEFAULT_PORT) -> tuple[bool, 
         (False, error_message) on failure.
     """
     url = f"{_base_url(host, port)}/machine/services/restart?service=klipper"
-    ok, msg, _ = _post(url, data=b"{}", content_type="application/json")
+    ok, msg, _ = _post(url, data=b"{}", content_type="application/json", api_key=api_key)
     if not ok:
         return False, msg
     return True, "Klipper service restart issued"

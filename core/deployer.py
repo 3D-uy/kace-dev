@@ -364,13 +364,24 @@ def deploy_moonraker(user_data):
         style=custom_style,
     ).ask() or ""
 
+    # Warn if using plain HTTP with an API key
+    if api_key and not host.strip().lower().startswith("https://"):
+        warning_ok = questionary.confirm(
+            t("moonraker.http_warning"),
+            default=False,
+            style=custom_style,
+        ).ask()
+        if warning_ok is None or not warning_ok:
+            print(f"\n\033[91m[!] {t('moonraker.http_warning_cancelled')}\033[0m")
+            return
+
     # Persist for potential SSH fallback later
     user_data["moonraker_host"] = host
     user_data["moonraker_port"] = port
 
     # ── Step 2: Probe reachability ────────────────────────────────
     print(f"\n\033[96m[*]\033[0m {t('moonraker.connecting', host=host, port=port)}")
-    ok, info = check_moonraker(host, port)
+    ok, info = check_moonraker(host, port, api_key=api_key)
 
     if not ok:
         print(f"\033[91m[!] {t('moonraker.unreachable', host=host, port=port, error=info)}\033[0m")
@@ -394,7 +405,7 @@ def deploy_moonraker(user_data):
     # ── Step 3: Upload printer.cfg & macros.cfg ────────────────────────────────
     print(f"\033[96m[*]\033[0m {t('moonraker.uploading')}")
     cfg_path = os.path.expanduser("~/kace/printer.cfg")
-    ok, result = upload_printer_cfg(host, port, cfg_path)
+    ok, result = upload_printer_cfg(host, port, cfg_path, api_key=api_key)
 
     if not ok:
         print(f"\033[91m[!] {t('moonraker.upload_fail', error=result)}\033[0m")
@@ -404,7 +415,7 @@ def deploy_moonraker(user_data):
     macros_path = os.path.expanduser("~/kace/macros.cfg")
     if os.path.exists(macros_path):
         print(f"\033[96m[*]\033[0m Uploading macros.cfg...")
-        ok_m, res_m = upload_printer_cfg(host, port, macros_path)
+        ok_m, res_m = upload_printer_cfg(host, port, macros_path, api_key=api_key)
         if not ok_m:
             print(f"\033[91m[!] Failed to upload macros.cfg: {res_m}\033[0m")
 
@@ -422,9 +433,9 @@ def deploy_moonraker(user_data):
     ).ask()
 
     if restart_choice == "firmware":
-        ok, msg = restart_firmware(host, port)
+        ok, msg = restart_firmware(host, port, api_key=api_key)
     elif restart_choice == "service":
-        ok, msg = restart_klipper_service(host, port)
+        ok, msg = restart_klipper_service(host, port, api_key=api_key)
     else:
         return   # user skipped
 
