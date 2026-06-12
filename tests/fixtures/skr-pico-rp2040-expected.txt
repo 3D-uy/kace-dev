@@ -37,6 +37,7 @@ microsteps: 16                                  # Number of microsteps per full 
 rotation_distance: 40                           # Distance in mm the axis travels per full rotation of the motor
 endstop_pin: ^gpio4                             # Endstop pin. Add or remove "!" to invert logic
 position_endstop: 0                             # Location of the endstop (usually 0)
+position_min: 0                                 # Minimum valid X position
 position_max: 235                               # Maximum valid X position
 homing_speed: 50                                # Maximum velocity (in mm/s) of the stepper when homing
 
@@ -48,6 +49,7 @@ microsteps: 16                                  # Number of microsteps per full 
 rotation_distance: 40                           # Distance in mm the axis travels per full rotation of the motor
 endstop_pin: ^gpio3                             # Endstop pin. Add or remove "!" to invert logic
 position_endstop: 0                             # Location of the endstop (usually 0)
+position_min: 0                                 # Minimum valid Y position
 position_max: 235                               # Maximum valid Y position
 homing_speed: 50                                # Maximum velocity (in mm/s) of the stepper when homing
 
@@ -58,7 +60,8 @@ enable_pin: !gpio2                              # Enable pin for the stepper dri
 microsteps: 16                                  # Number of microsteps per full step
 rotation_distance: 8                            # Distance in mm the axis travels per full rotation of the motor
 endstop_pin: ^gpio25                            # Endstop pin. Add or remove "!" to invert logic
-position_endstop: 0                             # Location of the endstop (usually 0)
+position_endstop: 0.0                           # Location of the endstop (usually 0)
+position_min: 0                                 # Minimum valid Z position
 position_max: 300                               # Maximum valid Z position
 
 [extruder]
@@ -106,29 +109,21 @@ max_temp: 130                                   # Maximum safe temperature
 # --------------------------------------------------
 # TMC Drivers
 # --------------------------------------------------
+
 # [ stepper_x]
 # run_current: 0.800                            # motor current (A) --- manual configuration --- (check motor specs)
 # hold_current: 0.400                           # Motor hold current in amps
 # stealthchop_threshold: 999999                 # Set to 0 to use spreadCycle mode
-
-
-
 
 # [ stepper_y]
 # run_current: 0.800                            # motor current (A) --- manual configuration --- (check motor specs)
 # hold_current: 0.400                           # Motor hold current in amps
 # stealthchop_threshold: 999999                 # Set to 0 to use spreadCycle mode
 
-
-
-
 # [ stepper_z]
 # run_current: 0.650                            # motor current (A) --- manual configuration --- (check motor specs)
 # hold_current: 0.400                           # Motor hold current in amps
 # stealthchop_threshold: 999999                 # Set to 0 to use spreadCycle mode
-
-
-
 
 # [ extruder]
 # run_current: 0.650                            # motor current (A) --- manual configuration --- (check motor specs)

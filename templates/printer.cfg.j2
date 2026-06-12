@@ -45,8 +45,9 @@ rotation_distance: {{ user.rotation_distance_x | default(40) }} # Distance in mm
 gear_ratio: {{ user.gear_ratio_x }} # Gear ratio of the axis
 {%- endif %}
 endstop_pin: {{ pins['stepper_x'].get('endstop_pin', 'TODO') if 'stepper_x' in pins else 'TODO' }} # Endstop pin. Add or remove "!" to invert logic
-position_endstop: 0 # Location of the endstop (usually 0)
-position_max: {{ user.x_size }} # Maximum valid X position
+position_endstop: {{ user.x_position_endstop | default(0) }} # Location of the endstop (usually 0)
+position_min: {{ user.x_position_min | default(0) }} # Minimum valid X position
+position_max: {{ user.x_position_max | default(user.x_size) }} # Maximum valid X position
 homing_speed: 50 # Maximum velocity (in mm/s) of the stepper when homing
 
 [stepper_y]
@@ -61,8 +62,9 @@ rotation_distance: {{ user.rotation_distance_y | default(40) }} # Distance in mm
 gear_ratio: {{ user.gear_ratio_y }} # Gear ratio of the axis
 {%- endif %}
 endstop_pin: {{ pins['stepper_y'].get('endstop_pin', 'TODO') if 'stepper_y' in pins else 'TODO' }} # Endstop pin. Add or remove "!" to invert logic
-position_endstop: 0 # Location of the endstop (usually 0)
-position_max: {{ user.y_size }} # Maximum valid Y position
+position_endstop: {{ user.y_position_endstop | default(0) }} # Location of the endstop (usually 0)
+position_min: {{ user.y_position_min | default(0) }} # Minimum valid Y position
+position_max: {{ user.y_position_max | default(user.y_size) }} # Maximum valid Y position
 homing_speed: 50 # Maximum velocity (in mm/s) of the stepper when homing
 
 [stepper_z]
@@ -80,9 +82,10 @@ gear_ratio: {{ user.gear_ratio_z }} # Gear ratio of the axis
 endstop_pin: probe:z_virtual_endstop # Endstop pin. Add or remove "!" to invert logic
 {%- else %}
 endstop_pin: {{ pins['stepper_z'].get('endstop_pin', 'TODO') if 'stepper_z' in pins else 'TODO' }} # Endstop pin. Add or remove "!" to invert logic
-position_endstop: 0 # Location of the endstop (usually 0)
+position_endstop: {{ user.z_position_endstop | default(0) }} # Location of the endstop (usually 0)
 {%- endif %}
-position_max: {{ user.z_size }} # Maximum valid Z position
+position_min: {{ user.z_position_min | default(0) }} # Minimum valid Z position
+position_max: {{ user.z_position_max | default(user.z_size) }} # Maximum valid Z position
 
 {%- if user.z_motors | int >= 2 %}
 
@@ -168,8 +171,8 @@ sensor_pin: {{ probe_sec.get('sensor_pin', '^TODO') }} # Pin connected to the pr
 {%- if user.probe | lower == 'bltouch' or 'control_pin' in probe_sec %}
 control_pin: {{ probe_sec.get('control_pin', 'TODO') }} # Pin connected to the probe control
 {%- endif %}
-x_offset: 0 # distance from nozzle to probe in X (mm) --- manual configuration --- (measure physically from nozzle to probe tip)
-y_offset: 0 # distance from nozzle to probe in Y (mm) --- manual configuration --- (measure physically from nozzle to probe tip)
+x_offset: {{ user.probe_x_offset | default(0) }} # distance from nozzle to probe in X (mm) --- set in KACE wizard --- (re-measure physically if probe is moved)
+y_offset: {{ user.probe_y_offset | default(0) }} # distance from nozzle to probe in Y (mm) --- set in KACE wizard --- (re-measure physically if probe is moved)
 z_offset: 0 # nozzle to bed distance (mm) --- manual configuration --- (set using PROBE_CALIBRATE)
 
 [safe_z_home]
@@ -178,12 +181,23 @@ speed: 50 # Speed at which the toolhead is moved to the safe Z home coordinate
 z_hop: 10 # Distance (in mm) to lift the Z axis prior to homing
 z_hop_speed: 5 # Speed (in mm/s) at which the Z axis is lifted prior to homing
 
-# [bed_mesh]
-# speed: 120 # Probe speed in mm/s
-# horizontal_move_z: 5 # Z height before moving to next probe point
-# mesh_min: 10, 10 # probing area start (mm) --- manual configuration --- (must be inside bed limits)
-# mesh_max: {{ user.x_size | int - 10 }}, {{ user.y_size | int - 10 }} # probing area end (mm) --- manual configuration --- (must be inside bed limits)
-# probe_count: 5, 5 # Probe grid size
+[bed_mesh]
+speed: {{ user.bed_mesh.speed | default(120) }} # Probe speed in mm/s
+horizontal_move_z: {{ user.bed_mesh.horizontal_move_z | default(5) }} # Z height before moving to next probe point
+mesh_min: {{ user.bed_mesh.mesh_min }} # Probing area minimum (derived from physical limits)
+mesh_max: {{ user.bed_mesh.mesh_max }} # Probing area maximum (derived from physical limits)
+probe_count: {{ user.bed_mesh.probe_count }} # Probe grid size (NxN derived from bed size)
+algorithm: {{ user.bed_mesh.algorithm }} # Interpolation algorithm
+{%- if user.bed_mesh.algorithm == 'bicubic' %}
+bicubic_tension: {{ user.bed_mesh.bicubic_tension | default(0.2) }} # Tension of the bicubic curve
+mesh_pps: {{ user.bed_mesh.mesh_pps | default('2, 2') }} # Number of points to interpolate per segment
+{%- endif %}
+{%- if user.bed_mesh.adaptive_margin is defined %}
+adaptive_margin: {{ user.bed_mesh.adaptive_margin }} # Adaptive margin for mesh
+{%- endif %}
+fade_start: {{ user.bed_mesh.fade_start | default(1) }} # Z height at which to start fading mesh leveling
+fade_end: {{ user.bed_mesh.fade_end | default(10) }} # Z height at which mesh leveling is completely disabled
+fade_target: {{ user.bed_mesh.fade_target | default(0) }} # Target Z offset to fade towards
 {%- endif %}
 
 {%- if user.z_motors | int >= 2 and not (user.kinematics == 'corexy' and user.z_motors | int >= 3) %}
@@ -193,23 +207,22 @@ z_hop_speed: 5 # Speed (in mm/s) at which the Z axis is lifted prior to homing
 # [z_tilt] # --- optional --- (automatic Z leveling for multiple motors)
 # z_positions: # Locations of the bed pivot points
 {%- if user.z_motors | int == 2 %}
-#   0, {{ by // 2 }}
-#   {{ bx }}, {{ by // 2 }}
+#   -30, {{ by // 2 }}
+#   {{ bx + 30 }}, {{ by // 2 }}
 {%- elif user.z_motors | int == 3 %}
-#   0, 0
-#   {{ bx }}, 0
-#   {{ bx // 2 }}, {{ by }}
+#   -30, 0
+#   {{ bx + 30 }}, 0
+#   {{ bx // 2 }}, {{ by + 30 }}
 {%- else %}
-#   0, 0
-#   {{ bx }}, 0
-#   {{ bx }}, {{ by }}
-#   0, {{ by }}
+#   -30, -30
+#   {{ bx + 30 }}, -30
+#   {{ bx + 30 }}, {{ by + 30 }}
+#   -30, {{ by + 30 }}
 {%- endif %}
-# points: # Probing points for Z leveling
-#   10, 10
-#   {{ bx - 10 }}, 10
-#   {{ bx - 10 }}, {{ by - 10 }}
-#   10, {{ by - 10 }}
+# points: # Probing points for Z leveling (derived from physical probeable area)
+{%- for pt in user.leveling.z_tilt_points %}
+#   {{ pt[0] | round(1) }}, {{ pt[1] | round(1) }}
+{%- endfor %}
 # speed: 50 # Speed of non-probing moves during leveling
 # horizontal_move_z: 5 # Z height to clear the bed when moving
 {%- endif %}
@@ -222,11 +235,10 @@ z_hop_speed: 5 # Speed (in mm/s) at which the Z axis is lifted prior to homing
 # gantry_corners: # Locations of the gantry pivot points
 #   -60, -10
 #   {{ bx + 60 }}, {{ by + 90 }}
-# points: # Probing points for gantry leveling
-#   10, 10
-#   {{ bx - 10 }}, 10
-#   {{ bx - 10 }}, {{ by - 10 }}
-#   10, {{ by - 10 }}
+# points: # Probing points for gantry leveling (derived from physical probeable area)
+{%- for pt in user.leveling.quad_gantry_level_points %}
+#   {{ pt[0] | round(1) }}, {{ pt[1] | round(1) }}
+{%- endfor %}
 # speed: 50 # Speed of non-probing moves during leveling
 # horizontal_move_z: 5 # Z height to clear the bed when moving
 {%- endif %}
@@ -239,6 +251,16 @@ z_hop_speed: 5 # Speed (in mm/s) at which the Z axis is lifted prior to homing
 pin: {{ pins['fan'].get('pin', 'TODO') }} # Pin connected to the part cooling fan
 {%- else %}
 # pin: TODO # Pin connected to the part cooling fan (uncomment and set if available)
+{%- endif %}
+
+{%- if 'heater_fan hotend_fan' in pins %}
+# --------------------------------------------------
+# Hotend Heatsink Fan
+# --------------------------------------------------
+[heater_fan hotend_fan]
+pin: {{ pins['heater_fan hotend_fan'].get('pin', 'TODO') }} # Pin connected to the hotend heatsink fan
+heater: extruder                                # Heater associated with this fan
+heater_temp: 50.0                               # Temperature above which the fan is enabled
 {%- endif %}
 
 # --------------------------------------------------
@@ -264,9 +286,9 @@ max_temp: 130 # Maximum safe temperature
 
 {%- set d_type = 'tmc2208' if user.driver_type == 'TMC2225' else user.driver_type | lower %}
 
-{%- set tmc_x = pins.get('tmc2209 stepper_x', pins.get('tmc2208 stepper_x', pins.get('tmc2130 stepper_x', pins.get('tmc5160 stepper_x', {})))) %}
-{%- set has_pins_x = (user.driver_mode == 'UART' and 'uart_pin' in tmc_x) or (user.driver_mode == 'SPI' and 'cs_pin' in tmc_x) %}
-{%- set prefix_x = '' if has_pins_x else '# ' %}
+{% set tmc_x = pins.get('tmc2209 stepper_x', pins.get('tmc2208 stepper_x', pins.get('tmc2130 stepper_x', pins.get('tmc5160 stepper_x', {})))) -%}
+{% set has_pins_x = (user.driver_mode == 'UART' and 'uart_pin' in tmc_x) or (user.driver_mode == 'SPI' and 'cs_pin' in tmc_x) -%}
+{% set prefix_x = '' if has_pins_x else '# ' -%}
 {{ prefix_x }}[{{ d_type }} stepper_x]
 {%- if user.driver_mode == 'UART' %}
 {{ prefix_x }}uart_pin: {{ tmc_x.get('uart_pin', 'TODO') }} # UART communication pin
@@ -292,9 +314,9 @@ max_temp: 130 # Maximum safe temperature
 {{ prefix_x }}hold_current: 0.400 # Motor hold current in amps
 {{ prefix_x }}stealthchop_threshold: 999999 # Set to 0 to use spreadCycle mode
 
-{% set tmc_y = pins.get('tmc2209 stepper_y', pins.get('tmc2208 stepper_y', pins.get('tmc2130 stepper_y', pins.get('tmc5160 stepper_y', {})))) %}
-{% set has_pins_y = (user.driver_mode == 'UART' and 'uart_pin' in tmc_y) or (user.driver_mode == 'SPI' and 'cs_pin' in tmc_y) %}
-{% set prefix_y = '' if has_pins_y else '# ' %}
+{% set tmc_y = pins.get('tmc2209 stepper_y', pins.get('tmc2208 stepper_y', pins.get('tmc2130 stepper_y', pins.get('tmc5160 stepper_y', {})))) -%}
+{% set has_pins_y = (user.driver_mode == 'UART' and 'uart_pin' in tmc_y) or (user.driver_mode == 'SPI' and 'cs_pin' in tmc_y) -%}
+{% set prefix_y = '' if has_pins_y else '# ' -%}
 {{ prefix_y }}[{{ d_type }} stepper_y]
 {%- if user.driver_mode == 'UART' %}
 {{ prefix_y }}uart_pin: {{ tmc_y.get('uart_pin', 'TODO') }} # UART communication pin
@@ -320,9 +342,9 @@ max_temp: 130 # Maximum safe temperature
 {{ prefix_y }}hold_current: 0.400 # Motor hold current in amps
 {{ prefix_y }}stealthchop_threshold: 999999 # Set to 0 to use spreadCycle mode
 
-{% set tmc_z = pins.get('tmc2209 stepper_z', pins.get('tmc2208 stepper_z', pins.get('tmc2130 stepper_z', pins.get('tmc5160 stepper_z', {})))) %}
-{% set has_pins_z = (user.driver_mode == 'UART' and 'uart_pin' in tmc_z) or (user.driver_mode == 'SPI' and 'cs_pin' in tmc_z) %}
-{% set prefix_z = '' if has_pins_z else '# ' %}
+{% set tmc_z = pins.get('tmc2209 stepper_z', pins.get('tmc2208 stepper_z', pins.get('tmc2130 stepper_z', pins.get('tmc5160 stepper_z', {})))) -%}
+{% set has_pins_z = (user.driver_mode == 'UART' and 'uart_pin' in tmc_z) or (user.driver_mode == 'SPI' and 'cs_pin' in tmc_z) -%}
+{% set prefix_z = '' if has_pins_z else '# ' -%}
 {{ prefix_z }}[{{ d_type }} stepper_z]
 {%- if user.driver_mode == 'UART' %}
 {{ prefix_z }}uart_pin: {{ tmc_z.get('uart_pin', 'TODO') }} # UART communication pin
@@ -350,9 +372,9 @@ max_temp: 130 # Maximum safe temperature
 
 {%- if user.z_motors | int >= 2 %}
 
-{% set tmc_z1 = pins.get('tmc2209 stepper_z1', pins.get('tmc2208 stepper_z1', pins.get('tmc2130 stepper_z1', pins.get('tmc5160 stepper_z1', {})))) %}
-{% set has_pins_z1 = (user.driver_mode == 'UART' and 'uart_pin' in tmc_z1) or (user.driver_mode == 'SPI' and 'cs_pin' in tmc_z1) %}
-{% set prefix_z1 = '' if has_pins_z1 else '# ' %}
+{% set tmc_z1 = pins.get('tmc2209 stepper_z1', pins.get('tmc2208 stepper_z1', pins.get('tmc2130 stepper_z1', pins.get('tmc5160 stepper_z1', {})))) -%}
+{% set has_pins_z1 = (user.driver_mode == 'UART' and 'uart_pin' in tmc_z1) or (user.driver_mode == 'SPI' and 'cs_pin' in tmc_z1) -%}
+{% set prefix_z1 = '' if has_pins_z1 else '# ' -%}
 {{ prefix_z1 }}[{{ d_type }} stepper_z1]
 {%- if user.driver_mode == 'UART' %}
 {{ prefix_z1 }}uart_pin: {{ tmc_z1.get('uart_pin', 'TODO') }} # UART communication pin
@@ -381,9 +403,9 @@ max_temp: 130 # Maximum safe temperature
 
 {%- if user.z_motors | int >= 3 %}
 
-{% set tmc_z2 = pins.get('tmc2209 stepper_z2', pins.get('tmc2208 stepper_z2', pins.get('tmc2130 stepper_z2', pins.get('tmc5160 stepper_z2', {})))) %}
-{% set has_pins_z2 = (user.driver_mode == 'UART' and 'uart_pin' in tmc_z2) or (user.driver_mode == 'SPI' and 'cs_pin' in tmc_z2) %}
-{% set prefix_z2 = '' if has_pins_z2 else '# ' %}
+{% set tmc_z2 = pins.get('tmc2209 stepper_z2', pins.get('tmc2208 stepper_z2', pins.get('tmc2130 stepper_z2', pins.get('tmc5160 stepper_z2', {})))) -%}
+{% set has_pins_z2 = (user.driver_mode == 'UART' and 'uart_pin' in tmc_z2) or (user.driver_mode == 'SPI' and 'cs_pin' in tmc_z2) -%}
+{% set prefix_z2 = '' if has_pins_z2 else '# ' -%}
 {{ prefix_z2 }}[{{ d_type }} stepper_z2]
 {%- if user.driver_mode == 'UART' %}
 {{ prefix_z2 }}uart_pin: {{ tmc_z2.get('uart_pin', 'TODO') }} # UART communication pin
@@ -412,9 +434,9 @@ max_temp: 130 # Maximum safe temperature
 
 {%- if user.z_motors | int >= 4 %}
 
-{% set tmc_z3 = pins.get('tmc2209 stepper_z3', pins.get('tmc2208 stepper_z3', pins.get('tmc2130 stepper_z3', pins.get('tmc5160 stepper_z3', {})))) %}
-{% set has_pins_z3 = (user.driver_mode == 'UART' and 'uart_pin' in tmc_z3) or (user.driver_mode == 'SPI' and 'cs_pin' in tmc_z3) %}
-{% set prefix_z3 = '' if has_pins_z3 else '# ' %}
+{% set tmc_z3 = pins.get('tmc2209 stepper_z3', pins.get('tmc2208 stepper_z3', pins.get('tmc2130 stepper_z3', pins.get('tmc5160 stepper_z3', {})))) -%}
+{% set has_pins_z3 = (user.driver_mode == 'UART' and 'uart_pin' in tmc_z3) or (user.driver_mode == 'SPI' and 'cs_pin' in tmc_z3) -%}
+{% set prefix_z3 = '' if has_pins_z3 else '# ' -%}
 {{ prefix_z3 }}[{{ d_type }} stepper_z3]
 {%- if user.driver_mode == 'UART' %}
 {{ prefix_z3 }}uart_pin: {{ tmc_z3.get('uart_pin', 'TODO') }} # UART communication pin
@@ -441,9 +463,9 @@ max_temp: 130 # Maximum safe temperature
 {{ prefix_z3 }}stealthchop_threshold: 999999 # Set to 0 to use spreadCycle mode
 {%- endif %}
 
-{% set tmc_e = pins.get('tmc2209 extruder', pins.get('tmc2208 extruder', pins.get('tmc2130 extruder', pins.get('tmc5160 extruder', {})))) %}
-{% set has_pins_e = (user.driver_mode == 'UART' and 'uart_pin' in tmc_e) or (user.driver_mode == 'SPI' and 'cs_pin' in tmc_e) %}
-{% set prefix_e = '' if has_pins_e else '# ' %}
+{% set tmc_e = pins.get('tmc2209 extruder', pins.get('tmc2208 extruder', pins.get('tmc2130 extruder', pins.get('tmc5160 extruder', {})))) -%}
+{% set has_pins_e = (user.driver_mode == 'UART' and 'uart_pin' in tmc_e) or (user.driver_mode == 'SPI' and 'cs_pin' in tmc_e) -%}
+{% set prefix_e = '' if has_pins_e else '# ' -%}
 {{ prefix_e }}[{{ d_type }} extruder]
 {%- if user.driver_mode == 'UART' %}
 {{ prefix_e }}uart_pin: {{ tmc_e.get('uart_pin', 'TODO') }} # UART communication pin
@@ -495,3 +517,18 @@ aliases: {{ pins['board_pins'].get('aliases', '\\n    EXP1_1=TODO, EXP1_2=TODO')
 # 2. Run PID_CALIBRATE for hotend and bed
 # 3. Calibrate Z offset (PROBE_CALIBRATE)
 # 4. Verify endstops and axis directions
+{% if pins._advanced_sections %}
+
+# ==================================================
+# ADVANCED HARDWARE SECTIONS
+# ==================================================
+# The sections below were detected in your board's source config.
+# They are preserved here as commented-out blocks so you retain
+# the original pin data. Review each section carefully, then
+# uncomment and adjust as needed. Do NOT uncomment without reading
+# the note above each block — some require physical calibration.
+# ==================================================
+{% for block in pins._advanced_sections %}
+{{ block }}
+{%- endfor %}
+{% endif %}

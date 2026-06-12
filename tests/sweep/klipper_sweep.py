@@ -20,14 +20,10 @@ if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
 from tests.sweep.result_codes import SweepResult, SweepSummary
+from core.advanced_module_handler import is_unsupported_section
 
 KLIPPER_REPO_URL = "https://github.com/Klipper3d/klipper.git"
 CONFIG_SUBDIR    = "config"
-
-_UNSUPPORTED_SECTIONS = {
-    "resonance_tester", "adxl345", "lis2dw", "mpu9250",
-    "sx1509", "pca9685", "dotstar", "neopixel", "palette2",
-}
 
 _TODO_RE = re.compile(r'\bTODO\b', re.IGNORECASE)
 
@@ -68,11 +64,13 @@ def _has_active_todo(parsed):
 
 
 def _has_unsupported_sections(parsed):
-    for section in parsed:
-        for unsup in _UNSUPPORTED_SECTIONS:
-            if unsup in section.lower():
-                return True
-    return False
+    """Return True if any section is still gated as UNSUPPORTED.
+
+    Delegates to advanced_module_handler.is_unsupported_section() —
+    data/advanced_modules.yaml is the single source of truth.
+    Sections with passthrough=True are handled by the generator.
+    """
+    return any(is_unsupported_section(s) for s in parsed)
 
 
 def _classify_config(filename, raw):

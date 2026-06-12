@@ -88,3 +88,8 @@ tests/results_profiles/
 
 # Dev scratch directory — not part of the public project
 scratch/
+
+# Build and test artifacts
+out/
+outp/
+*.log

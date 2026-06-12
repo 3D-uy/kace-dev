@@ -21,15 +21,7 @@ from core.style import custom_style
 from core.translations import t, set_lang
 from core.banner import print_kace_banner
 
-# Read version once at module load (same logic as kace.py)
-def _read_version() -> str:
-    try:
-        _vf = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'VERSION')
-        with open(_vf, 'r', encoding='utf-8') as _f:
-            return 'v' + _f.read().strip()
-    except Exception:
-        return 'v0.1.0'
-
+from core.loader import read_version as _read_version
 _KACE_VERSION = _read_version()
 
 # ── Detection path constants (KACE / Klipper defaults) ──────────

@@ -54,6 +54,36 @@ UI_STRINGS: dict = {
         "Español":   "Seleccione su placa manualmente (escriba para buscar) [Ctrl+C para volver]:",
         "Português": "Selecione sua placa manualmente (digite para buscar) [Ctrl+C para voltar]:",
     },
+    "wizard.part_cooling_prompt": {
+        "English":   "Select output pin for the Part Cooling Fan ([fan]):",
+        "Español":   "Seleccione la salida para el Ventilador de Capa ([fan]):",
+        "Português": "Selecione a saída para o Ventilador de Camada ([fan]):",
+    },
+    "wizard.hotend_fan_prompt": {
+        "English":   "Select output pin for the Hotend Heatsink Fan ([heater_fan hotend_fan]) (Optional):",
+        "Español":   "Seleccione la salida para el Ventilador del Fusor ([heater_fan hotend_fan]) (Opcional):",
+        "Português": "Selecione a saída para o Ventilador do Fusor ([heater_fan hotend_fan]) (Opcional):",
+    },
+    "wizard.fan_board_default": {
+        "English":   "Board Default (pin: {pin})",
+        "Español":   "Predeterminado de la placa (pin: {pin})",
+        "Português": "Padrão da placa (pin: {pin})",
+    },
+    "wizard.fan_custom": {
+        "English":   "Custom pin...",
+        "Español":   "Pin personalizado...",
+        "Português": "Pin personalizado...",
+    },
+    "wizard.fan_none": {
+        "English":   "None / Disable",
+        "Español":   "Ninguno / Desactivar",
+        "Português": "Nenhum / Desativar",
+    },
+    "wizard.fan_enter_custom": {
+        "English":   "Enter custom pin name (e.g. PB6):",
+        "Español":   "Ingrese el nombre del pin personalizado (ej. PB6):",
+        "Português": "Digite o nome do pin personalizado (ex: PB6):",
+    },
     "wizard.select_kinematics": {
         "English":   "Select Kinematics:",
         "Español":   "Seleccione la Cinemática:",
@@ -78,6 +108,31 @@ UI_STRINGS: dict = {
         "English":   "Select Probe Type:",
         "Español":   "Seleccione el Tipo de Sensor:",
         "Português": "Selecione o Tipo de Sensor:",
+    },
+    "wizard.probe_x_offset": {
+        "English":   "Probe X offset from nozzle (mm, e.g. -38 or 0):",
+        "Español":   "Desplazamiento X del sensor desde la boquilla (mm, ej. -38 o 0):",
+        "Português": "Deslocamento X do sensor em relação ao bico (mm, ex. -38 ou 0):",
+    },
+    "wizard.probe_y_offset": {
+        "English":   "Probe Y offset from nozzle (mm, e.g. 0 or 25):",
+        "Español":   "Desplazamiento Y del sensor desde la boquilla (mm, ej. 0 o 25):",
+        "Português": "Deslocamento Y do sensor em relação ao bico (mm, ex. 0 ou 25):",
+    },
+    "wizard.probe_confirm_offsets": {
+        "English":   "Are these probe offsets correct?",
+        "Español":   "¿Son correctos estos desplazamientos del sensor?",
+        "Português": "Estes deslocamentos do sensor estão corretos?",
+    },
+    "wizard.probe_confirm_yes": {
+        "English":   "Yes, continue",
+        "Español":   "Sí, continuar",
+        "Português": "Sim, continuar",
+    },
+    "wizard.probe_confirm_retry": {
+        "English":   "No, re-enter offsets",
+        "Español":   "No, volver a ingresar desplazamientos",
+        "Português": "Não, reinserir deslocamentos",
     },
     "wizard.select_hotend_therm": {
         "English":   "Select Hotend Thermistor:",
@@ -194,6 +249,16 @@ UI_STRINGS: dict = {
         "Español":   "Ingrese {mode}_pin para {motor}:",
         "Português": "Digite {mode}_pin para {motor}:",
     },
+    "wizard.assign_custom_pins_header": {
+        "English":   "\nAssigning custom pins for {motor}:",
+        "Español":   "\nAsignando pines personalizados para {motor}:",
+        "Português": "\nAtribuindo pinos personalizados para {motor}:",
+    },
+    "wizard.confirm_standalone": {
+        "English":   "No driver data detected. Are you sure you want to use Standalone / standard drivers (no UART/SPI)?",
+        "Español":   "No se detectaron datos del driver. ¿Está seguro de que desea usar drivers Standalone / estándar (sin UART/SPI)?",
+        "Português": "Nenhum dado de driver detectado. Tem certeza de que deseja usar drivers Standalone / padrão (sem UART/SPI)?",
+    },
     # ── Common choice labels ────────────────────────────────────
     "choice.back": {
         "English":   "Back",
@@ -302,7 +367,7 @@ UI_STRINGS: dict = {
         "Português": "Klipper não encontrado — instale-o via KACE ou install.sh",
     },
     "dashboard.suggest_no_moonraker": {
-        "English":   "Moonraker not found — instálelo para habilitar el control web",
+        "English":   "Moonraker not found — install it to enable web control",
         "Español":   "Moonraker no encontrado — instálelo para habilitar el control web",
         "Português": "Moonraker não encontrado — instale-o para habilitar o controle web",
     },
@@ -615,7 +680,7 @@ UI_STRINGS: dict = {
         "Português": "Termistor da Mesa:",
     },
     "summary.next_steps": {
-        "English":   "Next steps:",
+        "English":   "Next Steps:",
         "Español":   "Próximos pasos:",
         "Português": "Próximos passos:",
     },
@@ -633,6 +698,81 @@ UI_STRINGS: dict = {
         "English":   "Restart Klipper",
         "Español":   "Reinicie Klipper",
         "Português": "Reinicie o Klipper",
+    },
+    "summary.board": {
+        "English":   "Board:",
+        "Español":   "Placa:",
+        "Português": "Placa:",
+    },
+    "summary.mcu": {
+        "English":   "MCU:",
+        "Español":   "MCU:",
+        "Português": "MCU:",
+    },
+    "summary.build_volume": {
+        "English":   "Build Volume:",
+        "Español":   "Volumen de construcción:",
+        "Português": "Volume de impressão:",
+    },
+    "summary.probe": {
+        "English":   "Probe:",
+        "Español":   "Sensor (Probe):",
+        "Português": "Sensor (Probe):",
+    },
+    "summary.probe_offsets": {
+        "English":   "Probe Offsets:",
+        "Español":   "Desplazamientos del Sensor:",
+        "Português": "Deslocamentos do Sensor:",
+    },
+    "summary.driver_type": {
+        "English":   "Driver Type:",
+        "Español":   "Tipo de Driver:",
+        "Português": "Tipo de Driver:",
+    },
+    "summary.driver_mode": {
+        "English":   "Driver Mode:",
+        "Español":   "Modo del Driver:",
+        "Português": "Modo do Driver:",
+    },
+    "summary.display": {
+        "English":   "Display:",
+        "Español":   "Pantalla:",
+        "Português": "Display:",
+    },
+    "summary.web_interface": {
+        "English":   "Web Interface:",
+        "Español":   "Interfaz Web:",
+        "Português": "Interface Web:",
+    },
+    "summary.printable_bed": {
+        "English":   "Printable Bed Area:",
+        "Español":   "Área de cama imprimible:",
+        "Português": "Área da mesa imprimível:",
+    },
+    "summary.nozzle_reachable": {
+        "English":   "Nozzle Reachable:",
+        "Español":   "Límite físico de boquilla:",
+        "Português": "Alcance físico do bico:",
+    },
+    "summary.probeable_bed": {
+        "English":   "Probeable Bed Area:",
+        "Español":   "Área de cama medible:",
+        "Português": "Área da mesa mensurável:",
+    },
+    "summary.homed_origin": {
+        "English":   "Homed Origin:",
+        "Español":   "Origen de Homing:",
+        "Português": "Origem do Homing:",
+    },
+    "summary.generated_files": {
+        "English":   "Generated Files:",
+        "Español":   "Archivos Generados:",
+        "Português": "Arquivos Gerados:",
+    },
+    "summary.happy_printing": {
+        "English":   "Configuration completed successfully, HAPPY PRINTING!",
+        "Español":   "Configuración completada exitosamente, ¡FELIZ IMPRESIÓN!",
+        "Português": "Configuração concluída com sucesso, BOAS IMPRESSÕES!",
     },
     # ── builder.py strings ──────────────────────────────────────
     "builder.summary_title": {
@@ -902,6 +1042,126 @@ UI_STRINGS: dict = {
         "Español":   "Termistor de la cama",
         "Português": "Termistor da mesa",
     },
+    "profile.comment_x_limits": {
+        "English":   "X axis travel limits and homing position",
+        "Español":   "límites de recorrido y posición de homing en X",
+        "Português": "limites de curso e posição de homing em X",
+    },
+    "profile.comment_y_limits": {
+        "English":   "Y axis travel limits and homing position",
+        "Español":   "límites de recorrido y posición de homing en Y",
+        "Português": "limites de curso e posição de homing em Y",
+    },
+    "profile.comment_z_limits": {
+        "English":   "Z axis travel limits and homing position",
+        "Español":   "límites de recorrido y posición de homing en Z",
+        "Português": "limites de curso e posição de homing em Z",
+    },
+    "profile.comment_probe_offsets": {
+        "English":   "probe distance from nozzle in X, Y, Z",
+        "Español":   "distancia del sensor a la boquilla en X, Y, Z",
+        "Português": "distância do sensor ao bico em X, Y, Z",
+    },
+    "profile.comment_kinematics": {
+        "English":   "printer kinematics model",
+        "Español":   "modelo cinemático de la impresora",
+        "Português": "modelo cinemático da impressora",
+    },
+    "profile.comment_position_min_x": {
+        "English":   "minimum position travel in X",
+        "Español":   "recorrido mínimo de posición en X",
+        "Português": "curso mínimo de posição em X",
+    },
+    "profile.comment_position_max_x": {
+        "English":   "maximum position travel in X",
+        "Español":   "recorrido máximo de posición en X",
+        "Português": "curso máximo de posição em X",
+    },
+    "profile.comment_position_endstop_x": {
+        "English":   "X homing trigger position",
+        "Español":   "posición de activación de homing en X",
+        "Português": "posição de ativação do homing em X",
+    },
+    "profile.comment_position_min_y": {
+        "English":   "minimum position travel in Y",
+        "Español":   "recorrido mínimo de posición en Y",
+        "Português": "curso mínimo de posição em Y",
+    },
+    "profile.comment_position_max_y": {
+        "English":   "maximum position travel in Y",
+        "Español":   "recorrido máximo de posición en Y",
+        "Português": "curso máximo de posición em Y",
+    },
+    "profile.comment_position_endstop_y": {
+        "English":   "Y homing trigger position",
+        "Español":   "posición de activación de homing en Y",
+        "Português": "posição de ativação do homing em Y",
+    },
+    "profile.comment_position_min_z": {
+        "English":   "minimum position travel in Z",
+        "Español":   "recorrido mínimo de posición en Z",
+        "Português": "curso mínimo de posição em Z",
+    },
+    "profile.comment_position_max_z": {
+        "English":   "maximum position travel in Z",
+        "Español":   "recorrido máximo de posición en Z",
+        "Português": "curso máximo de posición en Z",
+    },
+    "profile.comment_position_endstop_z": {
+        "English":   "Z homing trigger position",
+        "Español":   "posición de activación de homing en Z",
+        "Português": "posição de ativação do homing em Z",
+    },
+    "profile.comment_build_volume": {
+        "English":   "printable bed travel envelope",
+        "Español":   "volumen de recorrido de la cama imprimible",
+        "Português": "volume de curso da mesa de impressão",
+    },
+    "profile.comment_probe_type": {
+        "English":   "probe sensor hardware type",
+        "Español":   "tipo de hardware del sensor de nivelación",
+        "Português": "tipo de hardware do sensor de nivelamento",
+    },
+    "profile.comment_probe_offset_x": {
+        "English":   "probe distance from nozzle in X",
+        "Español":   "distancia del sensor a la boquilla en X",
+        "Português": "distância do sensor ao bico em X",
+    },
+    "profile.comment_probe_offset_y": {
+        "English":   "probe distance from nozzle in Y",
+        "Español":   "distancia del sensor a la boquilla en Y",
+        "Português": "distância do sensor ao bico em Y",
+    },
+    "profile.comment_probe_offset_z": {
+        "English":   "probe distance from nozzle in Z",
+        "Español":   "distancia del sensor a la boquilla en Z",
+        "Português": "distância do sensor ao bico em Z",
+    },
+    "profile.comment_driver_type": {
+        "English":   "integrated stepper driver type",
+        "Español":   "tipo de controlador de motor integrado",
+        "Português": "tipo de driver de motor integrado",
+    },
+    "profile.comment_driver_mode": {
+        "English":   "stepper driver communication mode",
+        "Español":   "modo de comunicación del controlador de motor",
+        "Português": "modo de comunicação do driver de motor",
+    },
+    "profile.comment_hotend_therm": {
+        "English":   "hotend temperature sensor type",
+        "Español":   "tipo de sensor de temperatura del hotend",
+        "Português": "tipo de sensor de temperatura do hotend",
+    },
+    "profile.comment_bed_therm": {
+        "English":   "heated bed temperature sensor type",
+        "Español":   "tipo de sensor de temperatura de la cama caliente",
+        "Português": "tipo de sensor de temperatura da mesa aquecida",
+    },
+    "profile.comment_display": {
+        "English":   "LCD display interface type",
+        "Español":   "tipo de interfaz de pantalla LCD",
+        "Português": "tipo de interface da tela LCD",
+    },
     # ── Display Compatibility Layer strings ─────────────────────
     "display.warning_header": {
         "English":   "⚠️  Display Compatibility Warning",
@@ -962,6 +1222,82 @@ UI_STRINGS: dict = {
         "English":   "Detected section",
         "Español":   "Sección detectada",
         "Português": "Seção detectada",
+    },
+    # ── Display Setup Wizard strings ────────────────────────────
+    "wizard.display_use_prompt": {
+        "English":   "Do you want to use a display?",
+        "Español":   "¿Desea usar una pantalla?",
+        "Português": "Deseja usar um display?",
+    },
+    "wizard.display_category_prompt": {
+        "English":   "Select a display from the recommended list:",
+        "Español":   "Seleccione un display de la lista recomendada:",
+        "Português": "Selecione um display da lista recomendada:",
+    },
+    "wizard.display_recommended_header": {
+        "English":   "Recommended displays for your board:",
+        "Español":   "Pantallas recomendadas para su placa:",
+        "Português": "Displays recomendados para sua placa:",
+    },
+    "wizard.display_manual_prompt": {
+        "English":   "Search display by name or section key (type to filter):",
+        "Español":   "Buscar pantalla por nombre o clave de sección (escriba para filtrar):",
+        "Português": "Buscar display por nome ou chave de seção (digite para filtrar):",
+    },
+    "wizard.display_no_display": {
+        "English":   "No display (use web interface only)",
+        "Español":   "Sin pantalla (usar solo interfaz web)",
+        "Português": "Sem display (usar apenas interface web)",
+    },
+    "wizard.display_manual_mode": {
+        "English":   "Manual Search / Advanced Selection",
+        "Español":   "Búsqueda manual / Selección avanzada",
+        "Português": "Busca manual / Seleção avançada",
+    },
+    "wizard.display_risk_header": {
+        "English":   "Hardware Risk Analysis",
+        "Español":   "Análisis de Riesgos de Hardware",
+        "Português": "Análise de Riscos de Hardware",
+    },
+    "wizard.display_confirm_experimental": {
+        "English":   "This display requires modifications or has uncertain compatibility. Continue anyway?",
+        "Español":   "Esta pantalla requiere modificaciones o tiene compatibilidad incierta. ¿Continuar de todos modos?",
+        "Português": "Este display requer modificações ou tem compatibilidade incerta. Continuar mesmo assim?",
+    },
+    "wizard.display_confirm_unsafe": {
+        "English":   "⚠️  Type \"I accept the risk\" to proceed with this unsafe combination, or press Enter to go back:",
+        "Español":   "⚠️  Escriba \"I accept the risk\" para continuar con esta combinación insegura, o presione Enter para volver:",
+        "Português": "⚠️  Digite \"I accept the risk\" para prosseguir com esta combinação insegura, ou pressione Enter para voltar:",
+    },
+    "wizard.display_voltage_ok": {
+        "English":   "Voltage: Compatible ✅",
+        "Español":   "Voltaje: Compatible ✅",
+        "Português": "Tensão: Compatível ✅",
+    },
+    "wizard.display_voltage_warn": {
+        "English":   "Voltage: Requires level shifter 🟡",
+        "Español":   "Voltaje: Requiere convertidor de nivel 🟡",
+        "Português": "Tensão: Requer conversor de nível 🟡",
+    },
+    "wizard.display_voltage_danger": {
+        "English":   "Voltage: INCOMPATIBLE — damage risk 🔴",
+        "Español":   "Voltaje: INCOMPATIBLE — riesgo de daño 🔴",
+        "Português": "Tensão: INCOMPATÍVEL — risco de dano 🔴",
+    },
+    "wizard.display_interface_ok": {
+        "English":   "Interface: Available on board ✅",
+        "Español":   "Interfaz: Disponible en la placa ✅",
+        "Português": "Interface: Disponível na placa ✅",
+    },
+    "wizard.display_interface_adapter": {
+        "English":   "Interface: Requires adapter 🟡",
+        "Español":   "Interfaz: Requiere adaptador 🟡",
+        "Português": "Interface: Requer adaptador 🟡",
+    },
+    "wizard.display_confidence": {
+        "English":   "Confidence: {level}",
+        "Español":   "Confianza: {level}",
+        "Português": "Confiança: {level}",
     },
 }
 

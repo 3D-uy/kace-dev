@@ -123,15 +123,10 @@ def check_moonraker(host: str, port: int = DEFAULT_PORT) -> tuple[bool, str]:
     return True, f"Moonraker {version}"
 
 
-def upload_printer_cfg(host: str, port: int, cfg_path: str) -> tuple[bool, str]:
-    """Upload printer.cfg to Moonraker's config root via /server/files/upload.
+def upload_printer_cfg(host: str, port: int, cfg_path: str, filename: str = None) -> tuple[bool, str]:
+    """Upload a configuration file to Moonraker's config root via /server/files/upload.
 
-    The file is always uploaded as 'printer.cfg' regardless of the local
-    filename, preserving Klipper's expected configuration filename.
-
-    Returns:
-        (True, "printer.cfg") on success.
-        (False, error_message) on failure.
+    If filename is not explicitly provided, it defaults to the basename of the cfg_path.
     """
     cfg_path = os.path.expanduser(cfg_path)
     if not os.path.isfile(cfg_path):
@@ -143,11 +138,14 @@ def upload_printer_cfg(host: str, port: int, cfg_path: str) -> tuple[bool, str]:
     except OSError as e:
         return False, f"Could not read config file: {e}"
 
+    if not filename:
+        filename = os.path.basename(cfg_path)
+
     url = f"{_base_url(host, port)}/server/files/upload"
     ok, msg, body = _post_multipart(
         url,
         field_name="file",
-        filename="printer.cfg",
+        filename=filename,
         file_bytes=file_bytes,
         root="config",
     )

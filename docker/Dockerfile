@@ -1,11 +1,18 @@
 # Dockerfile — KACE Simulation & Development Container
 FROM python:3.11-slim-bookworm
 
-# Install required system packages
+# Install required system packages (including ARM and AVR cross-compilation toolchains)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     git \
     procps \
+    build-essential \
+    gcc-arm-none-eabi \
+    binutils-arm-none-eabi \
+    libnewlib-arm-none-eabi \
+    gcc-avr \
+    binutils-avr \
+    avr-libc \
     && rm -rf /var/lib/apt/lists/*
 
 # Set up workspace

@@ -35,6 +35,7 @@ except (AttributeError, OSError):
 from tests.sweep.result_codes import SweepResult, SweepSummary
 from core.scraper import parse_config, extract_profile_defaults
 from core.generator import generate_config
+from core.advanced_module_handler import is_unsupported_section
 
 KLIPPER_REPO_URL = "https://github.com/Klipper3d/klipper.git"
 CONFIG_SUBDIR    = "config"
@@ -63,12 +64,6 @@ def _find_git():
     return None
 
 GIT = _find_git()
-
-# ── Sections KACE doesn't support yet (generates UNSUPPORTED rather than FAIL) 
-_UNSUPPORTED_SECTIONS = {
-    "resonance_tester", "adxl345", "lis2dw", "mpu9250",
-    "sx1509", "pca9685", "dotstar", "neopixel", "palette2",
-}
 
 _TODO_RE = re.compile(r'\bTODO\b', re.IGNORECASE)
 
@@ -110,11 +105,13 @@ def _has_active_todo(parsed):
     return False
 
 def _has_unsupported_sections(parsed):
-    for section in parsed:
-        for unsup in _UNSUPPORTED_SECTIONS:
-            if unsup in section.lower():
-                return True
-    return False
+    """Return True if any section is still gated as UNSUPPORTED.
+
+    Delegates to advanced_module_handler.is_unsupported_section() —
+    data/advanced_modules.yaml is the single source of truth.
+    Sections with passthrough=True are handled by the generator.
+    """
+    return any(is_unsupported_section(s) for s in parsed)
 
 def _classify_config(filename, raw, output_dir, verbose=False):
     """
