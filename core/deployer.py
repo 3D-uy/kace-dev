@@ -55,19 +55,33 @@ def _require_paramiko():
 
 def deploy_config(user_data):
     """Deploys the generated printer.cfg to the Klipper host via SSH/SCP."""
+    password = user_data.pop('password', '')
     paramiko = _require_paramiko()
     if paramiko is None:
         return  # error already printed by _require_paramiko
 
+    # BUG-007: Verify the config file exists locally before attempting upload.
+    # sftp.put() raises a cryptic FileNotFoundError that the broad except below
+    # would swallow without telling the user the real cause.
+    cfg_path = os.path.expanduser('~/kace/printer.cfg')
+    if not os.path.isfile(cfg_path):
+        print(f"\033[91m[!] Deployment aborted: printer.cfg not found at {cfg_path}\033[0m")
+        print("\033[93m    Run 'Generate new config' first to create the file.\033[0m")
+        return
+
     try:
         ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        # UNSAFE-002: WarningPolicy warns the user on unknown host keys instead
+        # of silently accepting them (AutoAddPolicy is MITM-vulnerable).
+        # Known hosts are still loaded from ~/.ssh/known_hosts for verification.
+        ssh.load_system_host_keys()
+        ssh.set_missing_host_key_policy(paramiko.WarningPolicy())
 
         print(f"Connecting to {user_data['host']}...")
         ssh.connect(
             user_data['host'],
             username=user_data['user'],
-            password=user_data['password']
+            password=password
         )
 
         sftp = ssh.open_sftp()
@@ -84,7 +98,6 @@ def deploy_config(user_data):
         else:
             dest_file = dest
         print(f"Uploading printer.cfg to {dest_file}...")
-        cfg_path = os.path.expanduser('~/kace/printer.cfg')
         sftp.put(cfg_path, dest_file)
 
         # Upload macros.cfg if it exists
@@ -150,12 +163,20 @@ def deploy_usb(user_data, artifact_type="all"):
                 shutil.copy2(macros_path, os.path.join(dest, 'macros.cfg'))
         
         if artifact_type in ["firmware", "all"]:
-            for ext in ['klipper.bin', 'klipper.uf2', 'klipper.elf.hex']:
-                firmware_bin = os.path.expanduser(f'~/kace/{ext}')
-                if os.path.exists(firmware_bin):
-                    print(f"Copying firmware {ext} to {dest}...")
-                    shutil.copy2(firmware_bin, os.path.join(dest, ext))
-                    success = True
+            fw_path = user_data.get("firmware_path")
+            if fw_path and os.path.exists(os.path.expanduser(fw_path)):
+                firmware_bin = os.path.expanduser(fw_path)
+                ext = os.path.basename(firmware_bin)
+                print(f"Copying firmware {ext} to {dest}...")
+                shutil.copy2(firmware_bin, os.path.join(dest, ext))
+                success = True
+            else:
+                for ext in ['klipper.bin', 'klipper.uf2', 'klipper.elf.hex']:
+                    firmware_bin = os.path.expanduser(f'~/kace/{ext}')
+                    if os.path.exists(firmware_bin):
+                        print(f"Copying firmware {ext} to {dest}...")
+                        shutil.copy2(firmware_bin, os.path.join(dest, ext))
+                        success = True
                     
         if success:
             print("\033[92mUSB Deployment Successful!\033[0m")
@@ -216,12 +237,20 @@ def deploy_local(user_data, artifact_type="all"):
                 shutil.copy2(macros_path, os.path.join(dest, 'macros.cfg'))
         
         if artifact_type in ["firmware", "all"]:
-            for ext in ['klipper.bin', 'klipper.uf2', 'klipper.elf.hex']:
-                firmware_bin = os.path.expanduser(f'~/kace/{ext}')
-                if os.path.exists(firmware_bin):
-                    print(f"Copying firmware {ext} to {dest}...")
-                    shutil.copy2(firmware_bin, os.path.join(dest, ext))
-                    success = True
+            fw_path = user_data.get("firmware_path")
+            if fw_path and os.path.exists(os.path.expanduser(fw_path)):
+                firmware_bin = os.path.expanduser(fw_path)
+                ext = os.path.basename(firmware_bin)
+                print(f"Copying firmware {ext} to {dest}...")
+                shutil.copy2(firmware_bin, os.path.join(dest, ext))
+                success = True
+            else:
+                for ext in ['klipper.bin', 'klipper.uf2', 'klipper.elf.hex']:
+                    firmware_bin = os.path.expanduser(f'~/kace/{ext}')
+                    if os.path.exists(firmware_bin):
+                        print(f"Copying firmware {ext} to {dest}...")
+                        shutil.copy2(firmware_bin, os.path.join(dest, ext))
+                        success = True
                     
         if success:
             print(f"\033[92mSuccessfully saved to {dest}!\033[0m")
