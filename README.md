@@ -144,7 +144,7 @@ KACE ships with a production-grade test framework built entirely on the Python s
 | CI pipeline | GitHub Actions — 5 stages, concurrency cancellation, merge blocking |
 
 ```
-Current status: 277/277 tests passing ✅
+Current status: 276/276 tests passing ✅
 ```
 
 ```bash
