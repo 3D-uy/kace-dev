@@ -124,7 +124,7 @@ KACE incluye un framework de pruebas de nivel productivo construido sobre la bib
 | Pipeline CI | GitHub Actions — 5 etapas, cancelación de concurrencia, bloqueo de merge |
 
 ```
-Estado actual: 59/59 tests pasando ✅
+Estado actual: 277/277 tests pasando ✅
 ```
 
 ```bash
