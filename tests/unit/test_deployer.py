@@ -104,10 +104,12 @@ class TestDeployer(unittest.TestCase):
     @patch('core.deployer._require_paramiko')
     @patch('core.deployer.os.path.isfile')
     @patch('builtins.print')
-    def test_deploy_config_missing_file(self, mock_print, mock_isfile, mock_paramiko):
+    def test_deploy_config_missing_file(self, mock_print, mock_isfile, mock_paramiko_func):
         """If local printer.cfg is missing, deploy_config aborts."""
         mock_isfile.return_value = False
-        mock_paramiko.return_value = MagicMock()
+        mock_paramiko = MagicMock()
+        mock_paramiko.AuthenticationException = type('AuthenticationException', (Exception,), {})
+        mock_paramiko_func.return_value = mock_paramiko
         
         from core.deployer import deploy_config
         deploy_config({'host': '127.0.0.1', 'user': 'pi', 'dest_path': '~/printer_data'})
@@ -122,6 +124,7 @@ class TestDeployer(unittest.TestCase):
         """Mock SSH connection exception, deploy_config should catch and print."""
         mock_isfile.return_value = True
         mock_paramiko = MagicMock()
+        mock_paramiko.AuthenticationException = type('AuthenticationException', (Exception,), {})
         mock_paramiko_func.return_value = mock_paramiko
         
         # Mock SSH Client connect to raise an exception
@@ -146,6 +149,7 @@ class TestDeployer(unittest.TestCase):
         mock_exists.side_effect = lambda path: True if "macros.cfg" in path else False
         
         mock_paramiko = MagicMock()
+        mock_paramiko.AuthenticationException = type('AuthenticationException', (Exception,), {})
         mock_paramiko_func.return_value = mock_paramiko
         
         mock_client = MagicMock()
@@ -255,7 +259,7 @@ class TestDeployer(unittest.TestCase):
     def test_deploy_moonraker_warning_http_rejected(self, mock_print, mock_check, mock_confirm, mock_text):
         """Test http warning triggered and rejected by user, aborting deploy."""
         mock_text.side_effect = [
-            MagicMock(ask=lambda: "192.168.1.50"),  # host (implicitly http://)
+            MagicMock(ask=lambda: "http://192.168.1.50"),  # host (implicitly http://)
             MagicMock(ask=lambda: "7125"),          # port
             MagicMock(ask=lambda: "secret_key"),    # api key
         ]

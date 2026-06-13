@@ -446,7 +446,7 @@ def extract_profile_defaults(parsed_data):
             defaults['probe'] = 'BLTouch'
         elif parsed_data.get('probe') or parsed_data.get('smart_effector'):
             defaults['probe'] = 'Inductive'
-    except Exception as e:
+    except (KeyError, TypeError, ValueError) as e:
         print(f"\n\033[93mWarning: Failed to parse some printer profile defaults ({e}). Using standard defaults.\033[0m")
         
     return defaults

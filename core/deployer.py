@@ -54,6 +54,53 @@ def _require_paramiko():
             return None
 
 
+class _InteractiveHostKeyPolicy:
+    """Paramiko MissingHostKeyPolicy that asks the user before connecting.
+
+    WarningPolicy prints a warning and proceeds silently — the user has no
+    chance to abort. This policy shows the key fingerprint and requires an
+    explicit yes before the connection is made.
+
+    On acceptance the key is saved to ~/.ssh/known_hosts so the prompt
+    only appears once per host (standard SSH behaviour).
+    """
+
+    def missing_host_key(self, client, hostname, key):
+        import questionary
+        from core.style import custom_style
+
+        algo = key.get_name()
+        # Format fingerprint as colon-separated hex pairs (e.g. ab:cd:ef:...)
+        raw = key.get_fingerprint()
+        fingerprint = ':'.join(f'{b:02x}' for b in raw)
+
+        print(f"\n\033[93m[!] Unknown host key for {hostname}\033[0m")
+        print(f"    Algorithm  : {algo}")
+        print(f"    Fingerprint: {fingerprint}")
+        print(f"\033[93m    Verify this fingerprint matches your Pi before continuing.\033[0m\n")
+
+        trust = questionary.confirm(
+            f"Trust and connect to {hostname}?",
+            default=False,
+            style=custom_style,
+        ).ask()
+
+        if not trust:
+            # Raising SSHException aborts the connection cleanly
+            paramiko = _require_paramiko()
+            raise paramiko.SSHException(
+                f"Connection to {hostname} rejected — unknown host key not trusted."
+            )
+
+        # Save to known_hosts so the prompt doesn't repeat next time
+        client.get_host_keys().add(hostname, algo, key)
+        try:
+            known_hosts = os.path.expanduser("~/.ssh/known_hosts")
+            client.save_host_keys(known_hosts)
+        except Exception:
+            pass  # Non-fatal — key is still trusted for this session
+
+
 def deploy_config(user_data):
     """Deploys the generated printer.cfg to the Klipper host via SSH/SCP."""
     # Wipes password from user_data immediately to reduce the credential exposure window
@@ -77,7 +124,7 @@ def deploy_config(user_data):
         # of silently accepting them (AutoAddPolicy is MITM-vulnerable).
         # Known hosts are still loaded from ~/.ssh/known_hosts for verification.
         ssh.load_system_host_keys()
-        ssh.set_missing_host_key_policy(paramiko.WarningPolicy())
+        ssh.set_missing_host_key_policy(_InteractiveHostKeyPolicy())
 
         print(f"Connecting to {user_data['host']}...")
         ssh.connect(
@@ -111,6 +158,12 @@ def deploy_config(user_data):
 
         sftp.close()
         ssh.close()
+    except paramiko.AuthenticationException:
+        print("\033[91mDeployment failed: Authentication error — check username and password.\033[0m")
+    except TimeoutError:
+        print("\033[91mDeployment failed: Connection timed out — is the Pi powered on and reachable?\033[0m")
+    except OSError as e:
+        print(f"\033[91mDeployment failed: Network error — {e}\033[0m")
     except Exception as e:
         print(f"\033[91mDeployment failed: {e}\033[0m")
 
@@ -365,7 +418,7 @@ def deploy_moonraker(user_data):
     ).ask() or ""
 
     # Warn if using plain HTTP with an API key
-    if api_key and not host.strip().lower().startswith("https://"):
+    if api_key and host.strip().lower().startswith("http://"):
         warning_ok = questionary.confirm(
             t("moonraker.http_warning"),
             default=False,
@@ -393,11 +446,15 @@ def deploy_moonraker(user_data):
         ).ask()
         if fallback:
             user_data['host']      = host
-            user_data['user']      = questionary.text(t("kace.ssh_user_prompt"), default="pi", style=custom_style).ask()
-            user_data['password']  = questionary.password(t("kace.ssh_pass_prompt"), style=custom_style).ask()
-            user_data['dest_path'] = questionary.text(t("kace.ssh_dest_prompt"), default="~/printer_data/config/", style=custom_style).ask()
-            if user_data['host'] and user_data['user'] and user_data['dest_path']:
+            ssh_user = questionary.text(t("kace.ssh_user_prompt"), default="pi", style=custom_style).ask()
+            ssh_pass = questionary.password(t("kace.ssh_pass_prompt"), style=custom_style).ask()
+            ssh_dest = questionary.text(t("kace.ssh_dest_prompt"), default="~/printer_data/config/", style=custom_style).ask()
+            if user_data['host'] and ssh_user and ssh_dest:
+                user_data['user']      = ssh_user
+                user_data['dest_path'] = ssh_dest
+                user_data['password']  = ssh_pass   # deploy_config pops this immediately
                 deploy_config(user_data)
+            # ssh_pass goes out of scope here whether deploy ran or not
         return
 
     print(f"\033[92m[✔] {t('moonraker.connected', version=info)}\033[0m")
