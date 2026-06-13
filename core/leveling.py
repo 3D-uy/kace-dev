@@ -90,16 +90,29 @@ def derive_leveling_points(motion_space, z_motors: int) -> dict:
     """Derive safe, clamped probing coordinates for z_tilt and quad_gantry_level adjustments.
 
     A safety margin of 10mm is applied to ensure probe remains on-bed.
+    The returned coordinates are nozzle coordinates, as required by Klipper's
+    z_tilt and quad_gantry_level configuration options.
     """
     probeable = motion_space.probeable_bed_area()
     px_min, px_max = probeable["x"]
     py_min, py_max = probeable["y"]
     margin = 10.0
 
-    zt_x_min = min(px_min + margin, px_max - margin)
-    zt_x_max = max(px_max - margin, px_min + margin)
-    zt_y_min = min(py_min + margin, py_max - margin)
-    zt_y_max = max(py_max - margin, py_min + margin)
+    # Define safe probe coordinates (on-bed with margin)
+    safe_probe_x_min = min(px_min + margin, px_max - margin)
+    safe_probe_x_max = max(px_max - margin, px_min + margin)
+    safe_probe_y_min = min(py_min + margin, py_max - margin)
+    safe_probe_y_max = max(py_max - margin, py_min + margin)
+
+    # Convert probe coordinates to nozzle coordinates:
+    # Nozzle_Coord = Probe_Coord - Probe_Offset
+    probe_x_offset = motion_space.probe_x_offset
+    probe_y_offset = motion_space.probe_y_offset
+
+    zt_x_min = safe_probe_x_min - probe_x_offset
+    zt_x_max = safe_probe_x_max - probe_x_offset
+    zt_y_min = safe_probe_y_min - probe_y_offset
+    zt_y_max = safe_probe_y_max - probe_y_offset
 
     z_tilt_points = []
     if z_motors == 2:
@@ -134,4 +147,5 @@ def derive_leveling_points(motion_space, z_motors: int) -> dict:
         "z_tilt_points": z_tilt_points,
         "quad_gantry_level_points": quad_gantry_points
     }
+
 

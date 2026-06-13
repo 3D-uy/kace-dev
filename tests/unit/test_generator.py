@@ -663,7 +663,7 @@ class TestLevelingPoints(unittest.TestCase):
         }
         space = PrinterMotionSpace(user_data)
         res = derive_leveling_points(space, 2)
-        self.assertEqual(res["z_tilt_points"], [(10.0, 95.0), (180.0, 95.0)])
+        self.assertEqual(res["z_tilt_points"], [(20.0, 105.0), (190.0, 105.0)])
 
     def test_derive_leveling_points_3_motors(self):
         from core.motion_model import PrinterMotionSpace

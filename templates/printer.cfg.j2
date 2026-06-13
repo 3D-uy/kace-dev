@@ -205,6 +205,7 @@ fade_target: {{ user.bed_mesh.fade_target | default(0) }} # Target Z offset to f
 {%- set by = user.y_size | int %}
 
 # [z_tilt] # --- optional --- (automatic Z leveling for multiple motors)
+# # Note: Klipper requires nozzle coordinates (not probe coordinates) for both z_positions and points.
 # z_positions: # Locations of the bed pivot points
 {%- if user.z_motors | int == 2 %}
 #   -30, {{ by // 2 }}
@@ -219,7 +220,7 @@ fade_target: {{ user.bed_mesh.fade_target | default(0) }} # Target Z offset to f
 #   {{ bx + 30 }}, {{ by + 30 }}
 #   -30, {{ by + 30 }}
 {%- endif %}
-# points: # Probing points for Z leveling (derived from physical probeable area)
+# points: # Probing points for Z leveling (derived from physical probeable area in nozzle coordinates)
 {%- for pt in user.leveling.z_tilt_points %}
 #   {{ pt[0] | round(1) }}, {{ pt[1] | round(1) }}
 {%- endfor %}
@@ -232,10 +233,11 @@ fade_target: {{ user.bed_mesh.fade_target | default(0) }} # Target Z offset to f
 {%- set by = user.y_size | int %}
 
 # [quad_gantry_level] # --- optional --- (for CoreXY gantry leveling)
-# gantry_corners: # Locations of the gantry pivot points
+# # Note: Klipper requires nozzle coordinates (not probe coordinates) for both gantry_corners and points.
+# gantry_corners: # Locations of the gantry pivot points (nozzle coordinates)
 #   -60, -10
 #   {{ bx + 60 }}, {{ by + 90 }}
-# points: # Probing points for gantry leveling (derived from physical probeable area)
+# points: # Probing points for gantry leveling (derived from physical probeable area in nozzle coordinates)
 {%- for pt in user.leveling.quad_gantry_level_points %}
 #   {{ pt[0] | round(1) }}, {{ pt[1] | round(1) }}
 {%- endfor %}
