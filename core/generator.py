@@ -276,11 +276,12 @@ def generate_config(parsed_data, user_data, output_path=None, include_macros=Fal
             active_todos.append((current_section, key))
 
     if active_todos:
-        print("\n\033[91mCRITICAL ERROR: Configuration generated with unresolved 'TODO' values!\033[0m")
-        print("\033[93mThis usually happens if your board does not map all required pins natively.\033[0m")
-        for section, key in active_todos:
-            print(f"TODO_FOUND: {section} -> {key}")
-        print("\033[91mGeneration aborted to guarantee it starts without errors in Klipper.\033[0m")
+        if os.environ.get("KACE_TESTING") != "1":
+            print("\n\033[91mCRITICAL ERROR: Configuration generated with unresolved 'TODO' values!\033[0m")
+            print("\033[93mThis usually happens if your board does not map all required pins natively.\033[0m")
+            for section, key in active_todos:
+                print(f"TODO_FOUND: {section} -> {key}")
+            print("\033[91mGeneration aborted to guarantee it starts without errors in Klipper.\033[0m")
         raise GenerationError(
             "Configuration has unresolved TODO pins — generation aborted.",
             todos=active_todos,
