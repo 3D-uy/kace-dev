@@ -1,6 +1,6 @@
 # Known Test Failures
 
-**Suite baseline:** 301 tests — 296 PASS · 0 FAIL · 0 ERROR · 5 SKIP  
+**Suite baseline:** +300 tests — 296 PASS · 0 FAIL · 0 ERROR · 5 SKIP  
 **Last verified:** 2026-06-15 · v0.9.2
 
 > No open failures. If you run the suite and see any failures, those are yours to investigate before shipping.
