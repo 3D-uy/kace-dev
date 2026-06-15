@@ -18,6 +18,7 @@ import tempfile
 import time
 import datetime
 import argparse
+import shutil
 
 # ── Path setup ────────────────────────────────────────────────────────────────
 _HERE = os.path.dirname(os.path.abspath(__file__))
@@ -66,6 +67,7 @@ def _find_git():
 GIT = _find_git()
 
 _TODO_RE = re.compile(r'\bTODO\b', re.IGNORECASE)
+_ANSI_RE = re.compile(r'\033\[[0-9;]*m')
 
 
 # ── Git helpers ────────────────────────────────────────────────────────────────
@@ -183,13 +185,12 @@ def _classify_config(filename, raw, output_dir, verbose=False):
 # ── Main sweep ─────────────────────────────────────────────────────────────────
 def run_full_sweep(verbose=False):
     summary   = SweepSummary()
-    ansi_re = re.compile(r'\033\[[0-9;]*m')
     gen_fails = []
     lines     = []  # for the saved report
 
     def log(msg="", end="\n"):
         print(msg, end=end, flush=True)
-        clean_msg = ansi_re.sub("", msg)
+        clean_msg = _ANSI_RE.sub("", msg)
         lines.append(clean_msg + end)
 
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -206,7 +207,6 @@ def run_full_sweep(verbose=False):
     output_dir = os.path.join(_HERE, "out_cfg")
     if os.path.isdir(output_dir):
         try:
-            import shutil
             shutil.rmtree(output_dir)
         except Exception:
             pass
