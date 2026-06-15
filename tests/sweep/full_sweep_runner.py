@@ -121,7 +121,7 @@ def _classify_config(filename, raw, output_dir, verbose=False):
     warnings = []
     try:
         parsed = parse_config(raw, filename)
-        extract_profile_defaults(parsed)
+        defaults = extract_profile_defaults(parsed)
 
         if _has_active_todo(parsed):
             return SweepResult(SweepResult.SAFE_ABORT, filename,
@@ -132,7 +132,6 @@ def _classify_config(filename, raw, output_dir, verbose=False):
                                "Unsupported/experimental sections present"), False, warnings
 
         # Build a minimal user_data for generation
-        defaults = extract_profile_defaults(parsed)
         user_data = {
             "mcu_path":          parsed.get("mcu", {}).get("serial", "/dev/serial/by-id/TODO"),
             "kinematics":        defaults.get("kinematics", "cartesian"),
@@ -167,17 +166,16 @@ def _classify_config(filename, raw, output_dir, verbose=False):
         try:
             generate_config(parsed, user_data, output_path=out_file, include_macros=False)
             generate_ok = True
-        except SystemExit:
-            generate_ok = False
-            warnings.append("generate_config hit sys.exit (TODO pins in output)")
         except Exception as gen_exc:
+            from core.exceptions import GenerationError
             generate_ok = False
-            warnings.append(f"generate_config error: {gen_exc}")
+            if isinstance(gen_exc, GenerationError):
+                warnings.append(f"generate_config hit GenerationError (TODO pins in output): {gen_exc}")
+            else:
+                warnings.append(f"generate_config error: {gen_exc}")
 
         return SweepResult(SweepResult.PASS, filename), generate_ok, warnings
 
-    except SystemExit:
-        return SweepResult(SweepResult.SAFE_ABORT, filename, "sys.exit during parse"), False, warnings
     except Exception as exc:
         return SweepResult(SweepResult.FAILURE, filename, str(exc)), False, warnings
 
@@ -185,12 +183,14 @@ def _classify_config(filename, raw, output_dir, verbose=False):
 # ── Main sweep ─────────────────────────────────────────────────────────────────
 def run_full_sweep(verbose=False):
     summary   = SweepSummary()
+    ansi_re = re.compile(r'\033\[[0-9;]*m')
     gen_fails = []
     lines     = []  # for the saved report
 
     def log(msg="", end="\n"):
         print(msg, end=end, flush=True)
-        lines.append(msg + end)
+        clean_msg = ansi_re.sub("", msg)
+        lines.append(clean_msg + end)
 
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     log(f"\n{'=' * 64}")
@@ -203,10 +203,16 @@ def run_full_sweep(verbose=False):
         log("Install Git for Windows from https://git-scm.com/")
         return False
 
-    with tempfile.TemporaryDirectory(prefix="kace_sweep_") as tmpdir:
-        output_dir = os.path.join(tmpdir, "generated")
-        os.makedirs(output_dir, exist_ok=True)
+    output_dir = os.path.join(_HERE, "out_cfg")
+    if os.path.isdir(output_dir):
+        try:
+            import shutil
+            shutil.rmtree(output_dir)
+        except Exception:
+            pass
+    os.makedirs(output_dir, exist_ok=True)
 
+    with tempfile.TemporaryDirectory(prefix="kace_sweep_") as tmpdir:
         if not _clone_klipper(tmpdir):
             log("\n\033[91mSweep aborted — could not clone Klipper.\033[0m")
             return False
@@ -290,12 +296,10 @@ def run_full_sweep(verbose=False):
             for w in warns:
                 log(f"       {w}")
 
-    # Save clean report (strip ANSI)
-    ansi_re = re.compile(r'\033\[[0-9;]*m')
-    clean_lines = [ansi_re.sub("", l) for l in lines]
+    # Save clean report (ANSI stripped at log time)
     try:
         with open(REPORT_PATH, "w", encoding="utf-8") as f:
-            f.writelines(clean_lines)
+            f.writelines(lines)
         print(f"\n  Report saved → {REPORT_PATH}")
     except Exception as e:
         print(f"\n  (Could not save report: {e})")

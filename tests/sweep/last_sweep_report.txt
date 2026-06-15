@@ -1,7 +1,7 @@
 
 ================================================================
   KACE — Full Klipper Config Sweep
-  Run at: 2026-06-15 13:11:30
+  Run at: 2026-06-15 16:07:44
 ================================================================
 
   Found 192 config files. Processing...
@@ -18,7 +18,7 @@
 ....................  [185/192] [PASS]                  printer-velleman-k8800-2017.cfg  [!gen]
 .......
 
-  Sweep completed in 11.2s
+  Sweep completed in 11.7s
 
 ================================================================
   KACE — Full Klipper Config Sweep Report
@@ -33,22 +33,22 @@
 
 [WARN] GENERATION WARNINGS (parsed OK but output had issues):
   [!]  printer-anet-a4-2018.cfg
-       generate_config error: Configuration has unresolved TODO pins — generation aborted.
+       generate_config hit GenerationError (TODO pins in output): Configuration has unresolved TODO pins — generation aborted.
   [!]  printer-anycubic-kossel-2016.cfg
-       generate_config error: Configuration has unresolved TODO pins — generation aborted.
+       generate_config hit GenerationError (TODO pins in output): Configuration has unresolved TODO pins — generation aborted.
   [!]  printer-anycubic-kossel-plus-2017.cfg
-       generate_config error: Configuration has unresolved TODO pins — generation aborted.
+       generate_config hit GenerationError (TODO pins in output): Configuration has unresolved TODO pins — generation aborted.
   [!]  printer-flsun-q5-2020.cfg
-       generate_config error: Configuration has unresolved TODO pins — generation aborted.
+       generate_config hit GenerationError (TODO pins in output): Configuration has unresolved TODO pins — generation aborted.
   [!]  printer-flsun-qqs-2020.cfg
-       generate_config error: Configuration has unresolved TODO pins — generation aborted.
+       generate_config hit GenerationError (TODO pins in output): Configuration has unresolved TODO pins — generation aborted.
   [!]  printer-geeetech-301-2019.cfg
-       generate_config error: Configuration has unresolved TODO pins — generation aborted.
+       generate_config hit GenerationError (TODO pins in output): Configuration has unresolved TODO pins — generation aborted.
   [!]  printer-micromake-d1-2016.cfg
-       generate_config error: Configuration has unresolved TODO pins — generation aborted.
+       generate_config hit GenerationError (TODO pins in output): Configuration has unresolved TODO pins — generation aborted.
   [!]  printer-monoprice-mini-delta-2017.cfg
-       generate_config error: Configuration has unresolved TODO pins — generation aborted.
+       generate_config hit GenerationError (TODO pins in output): Configuration has unresolved TODO pins — generation aborted.
   [!]  printer-seemecnc-rostock-max-v2-2015.cfg
-       generate_config error: Configuration has unresolved TODO pins — generation aborted.
+       generate_config hit GenerationError (TODO pins in output): Configuration has unresolved TODO pins — generation aborted.
   [!]  printer-velleman-k8800-2017.cfg
-       generate_config error: Configuration has unresolved TODO pins — generation aborted.
+       generate_config hit GenerationError (TODO pins in output): Configuration has unresolved TODO pins — generation aborted.

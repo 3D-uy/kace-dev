@@ -76,9 +76,8 @@ def _has_unsupported_sections(parsed):
 def _classify_config(filename, raw):
     """Classify a single config file. Returns SweepResult."""
     try:
-        from core.scraper import parse_config, extract_profile_defaults
+        from core.scraper import parse_config
         parsed = parse_config(raw, filename)
-        extract_profile_defaults(parsed)
 
         if _has_active_todo(parsed):
             return SweepResult(SweepResult.SAFE_ABORT, filename,
@@ -88,8 +87,6 @@ def _classify_config(filename, raw):
                                "Unsupported/experimental sections present")
         return SweepResult(SweepResult.PASS, filename)
 
-    except SystemExit:
-        return SweepResult(SweepResult.SAFE_ABORT, filename, "sys.exit during parse")
     except Exception as exc:
         return SweepResult(SweepResult.FAILURE, filename, str(exc))
 
