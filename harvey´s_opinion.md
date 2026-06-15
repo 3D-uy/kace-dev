@@ -22,7 +22,7 @@ A continuación, presento mi análisis arquitectónico y de ingeniería del ecos
 * **i18n Desacoplado:** El diseño de `translations.py` permite la internacionalización en tres idiomas (EN, ES, PT) sin acoplar las firmas de las funciones principales del wizard, manejando el estado del idioma de forma global pero controlada.
 
 ### Oportunidades de Refactorización / Código Limpio:
-* **Modularización de `wizard.py`:** Con más de 2000 líneas, `wizard.py` está asumiendo múltiples responsabilidades (orquestación del runner, prompts de questionary, lógica específica de motores Z y lógica de la UI de edición). Dividir este archivo en submódulos (ej. `core/wizard/runner.py`, `core/wizard/steps.py`, `core/wizard/editor.py`) facilitaría el mantenimiento a largo plazo.
+* **Modularización de `wizard.py`:** Completada con éxito. Se fragmentó el archivo original de más de 2000 líneas en un paquete estructurado `core/wizard/` con submódulos independientes (`runner.py`, `ui.py`, y carpetas de pasos específicos por componente: `steps/hardware.py`, `steps/motion.py`, `steps/sensors.py`, `steps/software.py`). Esto redujo la complejidad cognitiva dramáticamente y mejoró la mantenibilidad de la UI de configuración interactiva.
 
 ---
 
@@ -50,8 +50,8 @@ A continuación, presento mi análisis arquitectónico y de ingeniería del ecos
 | :--- | :---: | :---: | :--- |
 | **Parser & Scraper** | **10/10** | Estable | 192 de 192 configuraciones parseadas sin excepciones. |
 | **Generador de Config** | **9.5/10** | Estable | Los bloques passthrough y la sincronización de límites operan correctamente. |
-| **Wizard de Usuario** | **9/10** | Estable | UI pulida con navegación por flechas y validación localizada inline. |
-| **Suite de Tests** | **10/10** | Excelente | 292 pruebas cubren regresión, integridad YAML y flujos de wizard. |
+| **Wizard de Usuario** | **9.5/10** | Excelente | Asistente modularizado y dotado de modos Beginner y Advanced según la experiencia del usuario. |
+| **Suite de Tests** | **10/10** | Excelente | 301 pruebas cubren regresión, integridad YAML, flujos de wizard y validación de modos. |
 | **DevOps / Installs** | **9/10** | Estable | El instalador en bash valida dependencias con hashes criptográficos. |
 
 ---
@@ -60,7 +60,7 @@ A continuación, presento mi análisis arquitectónico y de ingeniería del ecos
 
 Para consolidar el proyecto en su versión `v1.0.0`, recomendaría enfocarse en las siguientes tareas no críticas pero valiosas:
 
-1. **Separación de wizard.py**: Como mencioné, fragmentar el wizard interactivo para reducir la complejidad cognitiva de ese módulo.
+1. **Separación de wizard.py**: Completada con éxito, mejorando la mantenibilidad y modularidad.
 2. **Pre-commit Hooks Locales Automatizados**: Asegurar que los hooks de pre-commit corran siempre el check de YAML (`tests/run_tests.py --yaml-check`) antes de cada commit para evitar la introducción de sintaxis inválida en `boards.yaml`.
 3. **Manejo de Errores de Conexión en Flujo SSH/Moonraker**: Implementar reintentos exponenciales (exponential backoff) en `MoonrakerDeployer` para redes inestables de Wi-Fi de impresoras 3D.
 
