@@ -22,6 +22,21 @@ def get_lang() -> str:
     return _current_lang
 
 
+_current_mode = "Beginner"
+
+
+def set_mode(mode: str) -> None:
+    """Set the configuration mode for the current session."""
+    global _current_mode
+    if mode in ("Beginner", "Advanced"):
+        _current_mode = mode
+
+
+def get_mode() -> str:
+    """Return the active configuration mode."""
+    return _current_mode
+
+
 # All user-facing UI strings keyed by a short dot-separated ID.
 # Each entry maps language name → display string.
 # Strings may contain {placeholders} for str.format(**kwargs).
@@ -29,6 +44,21 @@ def get_lang() -> str:
 # are kept in one place to make future configurability easy.
 UI_STRINGS: dict = {
     # ── Wizard prompts ─────────────────────────────────────────
+    "wizard.select_mode": {
+        "English":   "Select Configuration Mode / Seleccione el Modo de Configuración / Selecione o Modo de Configuração:",
+        "Español":   "Seleccione el Modo de Configuración:",
+        "Português": "Selecione o Modo de Configuração:",
+    },
+    "wizard.mode.beginner": {
+        "English":   "Beginner (guided with hints and recommendations)",
+        "Español":   "Principiante (guiado con sugerencias y recomendaciones)",
+        "Português": "Iniciante (guiado com dicas e recomendações)",
+    },
+    "wizard.mode.advanced": {
+        "English":   "Advanced (collapsed UI, no hints or guidance)",
+        "Español":   "Avanzado (UI simplificada, sin sugerencias ni guías)",
+        "Português": "Avançado (UI simplificada, sem dicas ou guias)",
+    },
     "wizard.select_language": {
         "English":   "Select language for comments / Seleccione el idioma / Selecione o idioma:",
         "Español":   "Seleccione el idioma para comentarios:",

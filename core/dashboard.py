@@ -18,7 +18,7 @@ import sys
 import questionary
 
 from core.style import custom_style
-from core.translations import t, set_lang
+from core.translations import t, set_lang, set_mode
 from core.banner import print_kace_banner
 
 from core.loader import read_version as _read_version
@@ -202,6 +202,27 @@ def _select_language() -> None:
     set_lang(lang)
 
 
+def _select_mode() -> None:
+    """Show a mode picker (Beginner vs Advanced) and set the configuration mode."""
+    choices = [
+        {"name": t("wizard.mode.beginner"), "value": "Beginner"},
+        {"name": t("wizard.mode.advanced"), "value": "Advanced"},
+    ]
+    try:
+        mode = questionary.select(
+            t("wizard.select_mode"),
+            choices=choices,
+            style=custom_style,
+        ).ask()
+    except (KeyboardInterrupt, EOFError):
+        sys.exit(0)
+
+    if mode is None:
+        sys.exit(0)
+
+    set_mode(mode)
+
+
 def run_dashboard(state: dict) -> str:
     """Display the KACE landing dashboard and return the chosen action.
 
@@ -217,6 +238,7 @@ def run_dashboard(state: dict) -> str:
     _render_status_panel(state)
 
     _select_language()
+    _select_mode()
 
     suggestions = get_suggestions(state)
     _render_suggestions(suggestions)

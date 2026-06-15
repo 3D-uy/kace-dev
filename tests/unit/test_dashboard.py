@@ -45,8 +45,8 @@ class TestDashboard(unittest.TestCase):
     @patch("questionary.select")
     def test_run_dashboard_flow(self, mock_select, mock_render_sugg, mock_render_status, mock_banner, mock_show_manage):
         """Verify run_dashboard navigation flows: select language and select generate."""
-        # 1st call selects language, 2nd selects generate
-        mock_ask = MagicMock(side_effect=["English", "generate"])
+        # 1st call selects language, 2nd selects mode, 3rd selects generate
+        mock_ask = MagicMock(side_effect=["English", "Beginner", "generate"])
         mock_select.return_value.ask = mock_ask
 
         state = {
@@ -63,7 +63,7 @@ class TestDashboard(unittest.TestCase):
         result = run_dashboard(state)
         self.assertEqual(result, "generate")
         self.assertEqual(mock_show_manage.call_count, 0)
-        self.assertEqual(mock_ask.call_count, 2)
+        self.assertEqual(mock_ask.call_count, 3)
 
 if __name__ == "__main__":
     unittest.main()
