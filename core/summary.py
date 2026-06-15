@@ -11,9 +11,9 @@ def print_summary(user_data: dict, parsed_data: dict = None):
     B  = "\033[1m"    # bold
     D  = "\033[2m"    # dim
     R  = "\033[0m"    # reset
-    M  = "\033[95m"   # magenta / section headers
+    M  = "\033[96m"   # cyan / section headers
 
-    col_w = 22   # label column width
+    col_w = 30   # label column width
 
     def _row(label: str, value: str) -> str:
         pad = " " * max(0, col_w - len(label))

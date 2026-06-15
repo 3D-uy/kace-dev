@@ -101,6 +101,8 @@ class KaceTestRunner(unittest.TextTestRunner):
         self.stream.writeln(f"\033[92m{result.success_count} PASSED\033[0m")
         if result.failure_count > 0:
             self.stream.writeln(f"\033[91m{result.failure_count} FAILED\033[0m")
+            self.stream.writeln("  -> Check KNOWN_FAILURES.md — compare failing test IDs against the documented list.")
+            self.stream.writeln("     A new test ID not in that file is a regression, regardless of total count.")
         if result.error_count > 0:
             self.stream.writeln(f"\033[91m{result.error_count} ERRORS\033[0m")
         self.stream.writeln(f"\nTime taken: {elapsed:.2f}s")

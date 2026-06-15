@@ -70,7 +70,7 @@ _C   = "\033[96m"          # cyan — info
 _B   = "\033[1m"           # bold
 _RS  = "\033[0m"           # reset
 _W   = "\033[97m"          # bright white
-_M   = "\033[95m"          # magenta
+_M   = "\033[96m"          # cyan
 _DIM = "\033[2m"           # dim
 
 # Badge glyphs and colors per compatibility class
@@ -81,11 +81,12 @@ _CLASS_BADGE = {
     "unsafe":                  (_R,  "🔴"),
 }
 
-_CLASS_LABEL = {
-    "fully_compatible":        "Fully Compatible",
-    "compatible_with_adapter": "Compatible with Adapter",
-    "experimental":            "Experimental",
-    "unsafe":                  "UNSAFE / HIGH RISK",
+
+_PT_STYLE = {
+    "fully_compatible":        "fg:#4caf50",       # green
+    "compatible_with_adapter": "fg:#f5a623",       # amber
+    "experimental":            "fg:#ff9800",       # orange
+    "unsafe":                  "fg:#cc5454",       # red
 }
 
 _VALIDATION_BADGE = {
@@ -115,7 +116,7 @@ def _print_risk_panel(analysis: dict, display_key: str) -> None:
     """Render the full risk analysis panel for a manually-selected display."""
     comp_class = analysis.get("compatibility_class", "experimental")
     color, badge = _CLASS_BADGE.get(comp_class, (_C, "?"))
-    label = _CLASS_LABEL.get(comp_class, comp_class.upper())
+    label = t(f"display.class_{comp_class}")
     confidence = analysis.get("confidence_level", "Unknown")
 
     border = _R if comp_class == "unsafe" else _Y if comp_class in ("compatible_with_adapter", "experimental") else _G
@@ -244,21 +245,16 @@ def _build_recommended_choices(
     choices = []
 
     order = ["fully_compatible", "compatible_with_adapter", "experimental"]
-    separators = {
-        "fully_compatible":        f"── {_G}✅  Fully Compatible{_RS} ──────────────",
-        "compatible_with_adapter": f"── {_Y}🟡  Compatible with Adapter{_RS} ──────",
-        "experimental":            f"── {_O}🟠  Experimental{_RS} ─────────────────",
-    }
 
     for class_key in order:
         entries = recommended.get(class_key, [])
         if not entries:
             continue
 
-        # Separator (questionary separator)
+        # Separator (questionary separator using dynamic localized string)
         color, badge = _CLASS_BADGE[class_key]
-        label = _CLASS_LABEL[class_key]
-        choices.append(questionary.Separator(f"  {color}{badge} {label}{_RS}"))
+        label = t(f"display.class_{class_key}")
+        choices.append(questionary.Separator(f"  {badge} {label}"))
 
         for section_key, entry, hw_info in entries:
             friendly = _friendly(section_key)
@@ -270,7 +266,10 @@ def _build_recommended_choices(
     # Divider + advanced options
     choices.append(questionary.Separator("──────────────────────────────────"))
     choices.append({
-        "name":  f"  {_C}🔍  Manual Search / Advanced Selection...{_RS}",
+        "name":  [
+            ("", "  "),
+            ("fg:#00bcd4", "🔍  Manual Search / Advanced Selection...")
+        ],
         "value": "__manual__",
     })
     choices.append({"name": t("choice.back"), "value": _BACK})
@@ -431,7 +430,7 @@ def run_display_setup_step(
             result["display_section"]      = None
             result["display_compat_class"] = None
             result["display_risk_accepted"] = True
-            print(f"\n  {_G}✅  No display selected. KACE will omit display sections from the config.{_RS}\n")
+            print(f"\n  {_G}[OK]  No display selected. KACE will omit display sections from the config.{_RS}\n")
             return result
 
         # ── Manual search directly from Step A ───────────────────────────────

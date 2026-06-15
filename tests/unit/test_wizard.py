@@ -87,6 +87,51 @@ class TestWizard(unittest.TestCase):
         self.assertEqual(parsed["stepper_y"]["position_max"], "300")
         self.assertEqual(parsed["stepper_z"]["position_max"], "350")
 
+    @patch("questionary.select")
+    @patch("questionary.text")
+    def test_interactive_profile_review_edit_individual_limits(self, mock_text, mock_select):
+        """Verify interactive_profile_review can edit individual limits and handles sync correctly."""
+        from core.wizard import interactive_profile_review
+        
+        defaults = {
+            "x_position_min": "0", "x_position_max": "235", "x_position_endstop": "0",
+            "y_position_min": "0", "y_position_max": "235", "y_position_endstop": "0",
+            "x_size": "235", "y_size": "235"
+        }
+        parsed = {}
+        user_data = {
+            "x_position_min": "0", "x_position_max": "235", "x_position_endstop": "0",
+            "y_position_min": "0", "y_position_max": "235", "y_position_endstop": "0",
+            "x_size": "235", "y_size": "235"
+        }
+        
+        # We will do two separate edits inside the loop:
+        # First iteration: choose 'edit' -> 'x_position_min' -> type '-10' -> loop back
+        # Second iteration: choose 'y_position_max' -> type '320' -> loop back
+        # Third iteration: choose 'save' -> 'confirm'
+        mock_select.return_value.ask.side_effect = [
+            "edit", "x_position_min",
+            "y_position_max",
+            "save", "confirm"
+        ]
+        
+        mock_text.return_value.ask.side_effect = ["-10", "320"]
+        
+        result = interactive_profile_review(defaults, parsed, user_data)
+        
+        self.assertEqual(result, "confirm")
+        # Check X min edit
+        self.assertEqual(user_data["x_position_min"], "-10")
+        self.assertEqual(defaults["x_position_min"], "-10")
+        self.assertEqual(parsed["stepper_x"]["position_min"], "-10")
+        
+        # Check Y max edit and synchronization to y_size
+        self.assertEqual(user_data["y_position_max"], "320")
+        self.assertEqual(defaults["y_position_max"], "320")
+        self.assertEqual(parsed["stepper_y"]["position_max"], "320")
+        self.assertEqual(user_data["y_size"], "320")
+        self.assertEqual(defaults["y_size"], "320")
+
 
 
 class TestWizardRunner(unittest.TestCase):
@@ -474,6 +519,230 @@ class TestWizardProfileMerging(unittest.TestCase):
         self.assertEqual(board_parsed["heater_bed"]["sensor_type"], "Generic 3950")
         self.assertEqual(board_parsed["stepper_x"]["dir_pin"], "!PC5")
         self.assertEqual(board_parsed["stepper_x"]["step_pin"], "PD7")
+
+
+class TestWizardUIOrientation(unittest.TestCase):
+    @patch("sys.stdout", new_callable=lambda: __import__("io").StringIO())
+    def test_print_step_header_auto_silence(self, mock_stdout):
+        import os
+        from core.wizard import _print_step_header
+        with patch.dict(os.environ, {"KACE_AUTO": "1"}):
+            _print_step_header("board", {})
+            self.assertEqual(mock_stdout.getvalue(), "")
+
+    @patch("sys.stdout", new_callable=lambda: __import__("io").StringIO())
+    def test_print_step_header_quiet_silence(self, mock_stdout):
+        import os
+        from core.wizard import _print_step_header
+        with patch.dict(os.environ, {"KACE_QUIET": "1"}):
+            _print_step_header("board", {})
+            self.assertEqual(mock_stdout.getvalue(), "")
+
+    @patch("sys.stdout", new_callable=lambda: __import__("io").StringIO())
+    def test_phase_transition_banner_fires_exactly_once(self, mock_stdout):
+        import os
+        from core.wizard import WizardRunner
+        
+        # We set up a simple wizard with 3 steps spanning 2 phases
+        # Phase order: Hardware -> Motion -> Sensors -> Software
+        steps_config = {
+            "stepA": {
+                "prompt": lambda ud: "ansA",
+                "next": lambda ans, ud: "stepB"
+            },
+            "stepB": {
+                "prompt": lambda ud: "ansB",
+                "next": lambda ans, ud: "stepC"
+            },
+            "stepC": {
+                "prompt": lambda ud: "__back__" if ud.get("go_back") else "ansC"
+            }
+        }
+        step_order = ["stepA", "stepB", "stepC"]
+        
+        # Override PHASE_MAP inside the test module context
+        from core.wizard import PHASE_MAP
+        original_phase_map = PHASE_MAP.copy()
+        PHASE_MAP["stepA"] = "Hardware"
+        PHASE_MAP["stepB"] = "Motion"
+        PHASE_MAP["stepC"] = "Motion"
+        
+        try:
+            # First, test forward transition A -> B. Transition banner should print.
+            # Then B -> C, within same phase, transition banner should NOT print.
+            runner = WizardRunner(steps_config, step_order, initial_data={})
+            
+            # Step A prompt returns ansA -> moves to step B
+            # Step B prompt returns ansB -> moves to step C
+            # Step C prompt returns ansC -> finishes
+            runner.run("stepA")
+            
+            output = mock_stdout.getvalue()
+            # Phase transitions from Hardware to Motion. It should print phase complete banner once for Hardware.
+            self.assertIn("✔ Phase complete: Hardware", output)
+            self.assertNotIn("✔ Phase complete: Motion", output) # Since Motion is not completed (Software is not entered)
+            
+            # Clear output buffer
+            mock_stdout.seek(0)
+            mock_stdout.truncate(0)
+            
+            # Now test back navigation.
+            # A -> B -> C -> Back to B -> C again.
+            # We want to ensure no banner is printed when navigating backward (C -> B).
+            # And when moving forward from B -> C again, it does not reprint the transition banner since they are within same phase.
+            user_data = {"go_back": True}
+            
+            # We mock steps_config to first trigger a back navigation on step C,
+            # then on the second visit to step C, return ansC to finish.
+            call_count = 0
+            def prompt_step_c(ud):
+                nonlocal call_count
+                call_count += 1
+                if call_count == 1:
+                    return "__back__"
+                return "ansC"
+                
+            steps_config["stepC"]["prompt"] = prompt_step_c
+            
+            runner = WizardRunner(steps_config, step_order, initial_data=user_data)
+            runner.run("stepA")
+            
+            output2 = mock_stdout.getvalue()
+            # It should print transition banner for Hardware complete exactly once when moving from stepA to stepB.
+            self.assertEqual(output2.count("Phase complete: Hardware"), 1)
+            
+        finally:
+            # Restore original phase map
+            PHASE_MAP.clear()
+            PHASE_MAP.update(original_phase_map)
+
+
+class TestBLTouchWizardPrompt(unittest.TestCase):
+
+    def test_needs_bltouch_pins(self):
+        from core.wizard import _needs_bltouch_pins
+        
+        # Scenario 1: missing completely
+        user_data = {"board": "generic-melzi.cfg"}
+        # get_current_board_parsed returns empty dict or parses it
+        # Melzi has unknown bltouch pins in boards.yaml
+        self.assertTrue(_needs_bltouch_pins(user_data))
+        
+        # Scenario 2: pins present in board config
+        with patch("core.wizard.get_current_board_parsed") as mock_parsed:
+            mock_parsed.return_value = {"bltouch": {"sensor_pin": "^PB7", "control_pin": "PB6"}}
+            self.assertFalse(_needs_bltouch_pins(user_data))
+
+            # Scenario 3: pins are TODO placeholders
+            mock_parsed.return_value = {"bltouch": {"sensor_pin": "^TODO", "control_pin": "TODO"}}
+            self.assertTrue(_needs_bltouch_pins(user_data))
+
+    @patch("questionary.select")
+    def test_probe_transitions(self, mock_select):
+        from core.wizard import run_wizard, WizardRunner
+        
+        captured_config = {}
+        original_init = WizardRunner.__init__
+        
+        def mock_init(self_runner, steps_config, step_order, initial_data=None):
+            captured_config.update(steps_config)
+            original_init(self_runner, steps_config, step_order, initial_data)
+            
+        with patch("core.wizard.WizardRunner.__init__", mock_init), \
+             patch("core.wizard.discover_mcu", return_value={}), \
+             patch("core.wizard.fetch_config_list", return_value=[]), \
+             patch("core.wizard.WizardRunner.run", return_value={}):
+            run_wizard()
+            
+        self.assertIn("probe", captured_config)
+        self.assertIn("bltouch_pins", captured_config)
+        
+        probe_next = captured_config["probe"]["next"]
+        
+        # 1. Probe None -> hotend_therm
+        self.assertEqual(probe_next("None", {}), "hotend_therm")
+        
+        # 2. Probe Inductive -> probe_offsets
+        self.assertEqual(probe_next("Inductive", {}), "probe_offsets")
+        
+        # 3. Probe BLTouch with missing pins -> bltouch_pins
+        with patch("core.wizard._needs_bltouch_pins", return_value=True):
+            self.assertEqual(probe_next("BLTouch", {}), "bltouch_pins")
+            
+        # 4. Probe BLTouch with mapped pins -> probe_offsets
+        with patch("core.wizard._needs_bltouch_pins", return_value=False):
+            self.assertEqual(probe_next("BLTouch", {}), "probe_offsets")
+
+    @patch("questionary.text")
+    def test_step_bltouch_pins_prompt_success(self, mock_text):
+        from core.wizard import _step_bltouch_pins
+        
+        # Mocking prompt for sensor and control pin
+        mock_text.return_value.ask.side_effect = ["^PB7", "PB6"]
+        
+        user_data = {"board": "generic-melzi.cfg"}
+        with patch("core.wizard.get_current_board_parsed", return_value={}):
+            res = _step_bltouch_pins(user_data)
+            
+        self.assertEqual(res, "done")
+        self.assertEqual(user_data["bltouch_sensor_pin"], "^PB7")
+        self.assertEqual(user_data["bltouch_control_pin"], "PB6")
+
+    @patch("questionary.text")
+    def test_step_bltouch_pins_prompt_back(self, mock_text):
+        from core.wizard import _step_bltouch_pins, _BACK
+        
+        # User presses Esc on first prompt -> returns None
+        mock_text.return_value.ask.return_value = None
+        
+        user_data = {"board": "generic-melzi.cfg"}
+        with patch("core.wizard.get_current_board_parsed", return_value={}):
+            res = _step_bltouch_pins(user_data)
+            
+        self.assertEqual(res, _BACK)
+
+
+class TestAxisLimitsWizard(unittest.TestCase):
+
+    @patch("questionary.text")
+    def test_step_x_limits_success(self, mock_text):
+        from core.wizard import _step_x_limits
+        
+        # min, max, endstop
+        mock_text.return_value.ask.side_effect = ["-5.5", "240.2", "0"]
+        user_data = {}
+        
+        res = _step_x_limits(user_data)
+        self.assertEqual(res, "done")
+        self.assertEqual(user_data["x_position_min"], "-5.5")
+        self.assertEqual(user_data["x_position_max"], "240.2")
+        self.assertEqual(user_data["x_size"], "240.2")
+        self.assertEqual(user_data["x_position_endstop"], "0")
+
+    @patch("questionary.text")
+    def test_step_y_limits_back_navigation(self, mock_text):
+        from core.wizard import _step_y_limits, _BACK
+        
+        # User enters min, then at max types '<' to go back, enters min again, enters max, enters endstop
+        mock_text.return_value.ask.side_effect = ["-10", "<", "-5", "250", "0"]
+        user_data = {}
+        
+        res = _step_y_limits(user_data)
+        self.assertEqual(res, "done")
+        self.assertEqual(user_data["y_position_min"], "-5")
+        self.assertEqual(user_data["y_position_max"], "250")
+        self.assertEqual(user_data["y_position_endstop"], "0")
+
+    @patch("questionary.text")
+    def test_step_z_limits_back_out(self, mock_text):
+        from core.wizard import _step_z_limits, _BACK
+        
+        # User enters '<' at the very first prompt to back out to previous step
+        mock_text.return_value.ask.return_value = "<"
+        user_data = {}
+        
+        res = _step_z_limits(user_data)
+        self.assertEqual(res, _BACK)
 
 
 if __name__ == '__main__':

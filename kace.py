@@ -68,7 +68,7 @@ if os.environ.get("KACE_AUTO") == "1":
     questionary.password = mock_password
 
 from core.scraper import fetch_raw_config, parse_config
-from core.wizard import run_wizard
+from core.wizard import run_wizard, make_pin_validator_with_collision_check
 from core.exceptions import WizardExit, GenerationError
 from core.style import custom_style
 from core.generator import generate_config, has_todo_pins
@@ -135,34 +135,48 @@ def main():
     # and ask for the pins interactively so the workflow succeeds.
     _probe_choice = user_data.get("probe", "None")
     if _probe_choice in ("BLTouch", "CR-Touch"):
-        _blt = parsed_data.get("bltouch", {})
-        _missing_sensor  = not _blt.get("sensor_pin")
-        _missing_control = not _blt.get("control_pin")
+        _blt = parsed_data.setdefault("bltouch", {})
+        if user_data.get("bltouch_sensor_pin"):
+            _blt["sensor_pin"] = user_data["bltouch_sensor_pin"]
+        if user_data.get("bltouch_control_pin"):
+            _blt["control_pin"] = user_data["bltouch_control_pin"]
+
+        def _is_missing(p):
+            if not p:
+                return True
+            p_clean = str(p).strip().upper().lstrip('^!~')
+            return p_clean == "TODO" or p_clean == ""
+
+        _missing_sensor  = _is_missing(_blt.get("sensor_pin"))
+        _missing_control = _is_missing(_blt.get("control_pin"))
         if _missing_sensor or _missing_control:
-            print(f"\n\033[93m[!] BLTouch/CR-Touch selected but pin mapping is unknown for:\033[0m")
+            print(f"\n\033[93m[!] BLTouch/CR-Touch selected but pin mapping is unknown or incomplete for:\033[0m")
             print(f"\033[93m    {user_data['board']}\033[0m")
             print(f"\033[96m    Enter the pins manually below (check your board's wiring diagram).\033[0m")
             print(f"\033[2m    Example — Octopus Pro: sensor_pin=^PB7  control_pin=PB6\033[0m\n")
+
+            pin_validator = make_pin_validator_with_collision_check(user_data)
+
             if _missing_sensor:
                 _sp = questionary.text(
                     "BLTouch sensor_pin (e.g. ^PB7 or ^PC5):",
-                    validate=questionary_pin_validator,
+                    validate=pin_validator,
                     style=custom_style
                 ).ask()
                 if not _sp:
                     print(f"\n\033[91m[!] No sensor_pin provided — aborting.\033[0m")
                     sys.exit(1)
-                parsed_data.setdefault("bltouch", {})["sensor_pin"] = _sp.strip()
+                _blt["sensor_pin"] = _sp.strip()
             if _missing_control:
                 _cp = questionary.text(
                     "BLTouch control_pin (e.g. PB6 or PE5):",
-                    validate=questionary_pin_validator,
+                    validate=pin_validator,
                     style=custom_style
                 ).ask()
                 if not _cp:
                     print(f"\n\033[91m[!] No control_pin provided — aborting.\033[0m")
                     sys.exit(1)
-                parsed_data.setdefault("bltouch", {})["control_pin"] = _cp.strip()
+                _blt["control_pin"] = _cp.strip()
 
     # ── Display Compatibility Check ───────────────────────────────────────────
     # Run before generation so users can make an informed decision about

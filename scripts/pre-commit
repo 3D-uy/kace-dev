@@ -49,6 +49,16 @@ for f in files:
                 print(f"[PRE-COMMIT ERROR] Hardcoded string leak detected in '{f}': '{pattern}'")
                 errors += 1
 
+    # 3. Check for kace-dev GitHub repo URL references
+    #    Blocks any URL pointing at the dev staging repo from being committed.
+    #    Docker service names like 'docker-compose run --rm kace-dev' are not
+    #    matched because they don't contain a URL-shaped prefix.
+    kace_dev_url_pattern = r"(github\.com|raw\.githubusercontent\.com)/[^/\s]*?/kace-dev"
+    if re.search(kace_dev_url_pattern, content, re.IGNORECASE):
+        print(f"[PRE-COMMIT ERROR] kace-dev GitHub URL detected in '{f}'. "
+              f"All repo URLs must point to 3D-uy/kace (production).")
+        errors += 1
+
 if errors > 0:
     print(f"\n[PRE-COMMIT] Rejected! Found {errors} security/i18n leak(s).")
     sys.exit(1)

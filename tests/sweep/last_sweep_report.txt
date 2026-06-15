@@ -1,7 +1,7 @@
 
 ================================================================
   KACE — Full Klipper Config Sweep
-  Run at: 2026-06-11 16:14:33
+  Run at: 2026-06-15 13:11:30
 ================================================================
 
   Found 192 config files. Processing...
@@ -18,7 +18,7 @@
 ....................  [185/192] [PASS]                  printer-velleman-k8800-2017.cfg  [!gen]
 .......
 
-  Sweep completed in 11.4s
+  Sweep completed in 11.2s
 
 ================================================================
   KACE — Full Klipper Config Sweep Report

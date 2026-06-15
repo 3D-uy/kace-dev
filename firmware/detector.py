@@ -104,7 +104,7 @@ def discover_mcu_hardware(interactive=True):
         if interactive:
             if len(ports) == 1:
                 choice = ports[0]
-                print(f"\n\033[92m[✔] Connected MCU auto-detected:\033[0m \033[96m{choice}\033[0m\n")
+                print(f"\n\033[92m[✔ ] Connected MCU auto-detected:\033[0m \033[96m{choice}\033[0m\n")
             else:
                 choice = questionary.select(
                     "Select connected MCU:", choices=ports, style=custom_style

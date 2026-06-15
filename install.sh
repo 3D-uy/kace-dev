@@ -4,7 +4,7 @@
 #  Install Script
 #
 #  Safe Usage (inspect & verify release hashes):
-#    curl -sSL -o install.sh https://raw.githubusercontent.com/3D-uy/kace-dev/v0.9.2/install.sh
+#    curl -sSL -o install.sh https://raw.githubusercontent.com/3D-uy/kace/v0.9.2/install.sh
 #    # verify the installer before running: sha256sum install.sh
 #    bash install.sh
 # ============================================================
@@ -19,7 +19,7 @@ R="\033[0m"    # Reset
 B="\033[1m"    # Bold
 E="\033[91m"   # Red (error)
 
-REPO_URL="https://github.com/3D-uy/kace-dev.git"
+REPO_URL="https://github.com/3D-uy/kace.git"
 INSTALL_DIR="$HOME/kace"
 KACE_BIN="/usr/local/bin/kace"
 INSTALL_TAG="v0.9.2"

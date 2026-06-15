@@ -32,7 +32,7 @@ def _require_paramiko():
                 stderr=subprocess.STDOUT
             )
             import paramiko  # noqa: PLC0415
-            print("\033[92m[✔] paramiko installed successfully.\033[0m\n")
+            print("\033[92m[OK] paramiko installed successfully.\033[0m\n")
             return paramiko
         except subprocess.CalledProcessError as e:
             output = e.output.decode('utf-8', errors='ignore') if e.output else ""
@@ -457,7 +457,7 @@ def deploy_moonraker(user_data):
             # ssh_pass goes out of scope here whether deploy ran or not
         return
 
-    print(f"\033[92m[✔] {t('moonraker.connected', version=info)}\033[0m")
+    print(f"\033[92m[OK] {t('moonraker.connected', version=info)}\033[0m")
 
     # ── Step 3: Upload printer.cfg & macros.cfg ────────────────────────────────
     print(f"\033[96m[*]\033[0m {t('moonraker.uploading')}")
@@ -476,7 +476,7 @@ def deploy_moonraker(user_data):
         if not ok_m:
             print(f"\033[91m[!] Failed to upload macros.cfg: {res_m}\033[0m")
 
-    print(f"\033[92m[✔] {t('moonraker.upload_ok')}\033[0m")
+    print(f"\033[92m[OK] {t('moonraker.upload_ok')}\033[0m")
 
     # ── Step 4: Restart prompt ────────────────────────────────────
     restart_choice = questionary.select(
@@ -497,7 +497,6 @@ def deploy_moonraker(user_data):
         return   # user skipped
 
     if ok:
-        print(f"\033[92m[✔] {t('moonraker.restart_ok')}\033[0m")
+        print(f"\033[92m[OK] {t('moonraker.restart_ok')}\033[0m")
     else:
         print(f"\033[91m[!] {t('moonraker.restart_fail', error=msg)}\033[0m")
-

@@ -5,8 +5,8 @@
 <h1 align="center">🚀 KACE — Klipper Automated Configuration Ecosystem</h1>
 
 <p align="center">
-  <a href="https://github.com/3D-uy/kace-dev/actions/workflows/ci.yml">
-    <img src="https://github.com/3D-uy/kace-dev/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI">
+  <a href="https://github.com/3D-uy/kace/actions/workflows/ci.yml">
+    <img src="https://github.com/3D-uy/kace/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI">
   </a>
   <img src="https://img.shields.io/badge/version-v0.9.2-blue?style=flat-square" alt="Version">
   <img src="https://img.shields.io/badge/configs%20validated-192-brightgreen?style=flat-square" alt="Configs Validated">
@@ -53,7 +53,7 @@ Verify the installer script before running it:
 
 ```bash
 # 1. Download the pinned installer script
-curl -sSL -o install.sh https://raw.githubusercontent.com/3D-uy/kace-dev/v0.9.2/install.sh
+curl -sSL -o install.sh https://raw.githubusercontent.com/3D-uy/kace/v0.9.2/install.sh
 
 # 2. Inspect/verify the script (e.g. SHA-256 hash check)
 sha256sum install.sh
@@ -66,7 +66,7 @@ bash install.sh
 Alternatively, run the installer directly:
 
 ```bash
-bash <(curl -sSL https://raw.githubusercontent.com/3D-uy/kace-dev/v0.9.2/install.sh)
+bash <(curl -sSL https://raw.githubusercontent.com/3D-uy/kace/v0.9.2/install.sh)
 ```
 
 > Installs all dependencies with pip hash validation, clones the repository pinned to `v0.9.2` (shallow + sparse), and sets up the global `kace` command.
@@ -110,8 +110,8 @@ KACE has been validated against the **complete official Klipper configuration li
 
 | Result | Count | Meaning |
 |--------|-------|---------|
-| ✅ **PASS** | **172** | Full parse + config generation succeeded |
-| 🔵 **UNSUPPORTED** | **20** | Config uses sections outside KACE's current scope (neopixel, adxl345) |
+| ✅ **PASS** | **192** | Full parse + config generation succeeded |
+| 🔵 **UNSUPPORTED** | **0** | — |
 | 🟠 **SAFE\_ABORT** | **0** | — |
 | 🔴 **FAILURE** | **0** | **Zero hard crashes** |
 
@@ -120,9 +120,7 @@ KACE has been validated against the **complete official Klipper configuration li
 - **Zero parser regressions** — deterministic output on every run
 - **10 generation warnings** — all delta-kinematics printers where Klipper itself ships `TODO` endstop pins by design
 
-Unsupported configs contain features outside KACE's current scope:
-RGB/neopixel controllers, SX1509 GPIO expanders, or ADXL345 accelerometers.
-KACE **reports these gracefully** instead of crashing.
+Configs with advanced features (RGB/neopixel, SX1509, ADXL345) are now fully supported via clean commented-out passthrough blocks in the generated output.
 
 📄 **[View the complete sweep results → SWEEP_RESULTS.md](SWEEP_RESULTS.md)**  
 Includes a full per-config breakdown of all 192 boards, printers, and displays.
@@ -144,7 +142,7 @@ KACE ships with a production-grade test framework built entirely on the Python s
 | CI pipeline | GitHub Actions — 5 stages, concurrency cancellation, merge blocking |
 
 ```
-Current status: 276/276 tests passing ✅
+Current status: 292/292 tests passing ✅
 ```
 
 ```bash

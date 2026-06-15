@@ -24,3 +24,51 @@ def questionary_pin_validator(value: str) -> Union[bool, str]:
     if validate_klipper_pin(value):
         return True
     return "Invalid Klipper pin format. Use alphanumeric characters, dots, underscores, and optional prefixes (!, ^, ~)"
+
+
+def questionary_numeric_validator(value: str) -> Union[bool, str]:
+    """Validator for questionary.text numeric/limits inputs."""
+    val_strip = value.strip().lower()
+    if val_strip in ("<", "back", "volver", ""):
+        return True
+    try:
+        float(val_strip)
+        return True
+    except ValueError:
+        from core.translations import get_lang
+        lang = get_lang()
+        if lang == "Español":
+            return "Por favor ingrese un número válido (ej. 0, -5.5, 235) o '<' para volver"
+        elif lang == "Português":
+            return "Por favor insira um número válido (ex. 0, -5.5, 235) ou '<' para voltar"
+        else:
+            return "Please enter a valid number (e.g. 0, -5.5, 235) or '<' to go back"
+
+
+def questionary_pos_numeric_validator(value: str) -> Union[bool, str]:
+    """Validator for questionary.text positive numeric/volume inputs."""
+    val_strip = value.strip().lower()
+    if val_strip in ("<", "back", "volver", ""):
+        return True
+    try:
+        f = float(val_strip)
+        if f <= 0:
+            from core.translations import get_lang
+            lang = get_lang()
+            if lang == "Español":
+                return "El valor debe ser mayor que 0"
+            elif lang == "Português":
+                return "O valor deve ser maior que 0"
+            else:
+                return "Value must be greater than 0"
+        return True
+    except ValueError:
+        from core.translations import get_lang
+        lang = get_lang()
+        if lang == "Español":
+            return "Por favor ingrese un número válido mayor que 0 (ej. 235) o '<' para volver"
+        elif lang == "Português":
+            return "Por favor insira um número válido maior que 0 (ex. 235) ou '<' para voltar"
+        else:
+            return "Please enter a valid number greater than 0 (e.g. 235) or '<' to go back"
+

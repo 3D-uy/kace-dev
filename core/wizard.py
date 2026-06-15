@@ -10,10 +10,184 @@ from core.translations import t, get_lang
 from core.display_wizard import run_display_setup_step
 from core.probe_offset_visualizer import run_probe_offset_step
 from .exceptions import WizardExit
-from core.validators import questionary_pin_validator
+from core.validators import questionary_pin_validator, questionary_numeric_validator, questionary_pos_numeric_validator
 
 _BACK = "__back__"
 _QUIT = "__quit__"
+
+PHASE_MAP = {
+    "board": "Hardware",
+    "fan_assignment": "Hardware",
+    "z_motors": "Hardware",
+    "z_socket_assignment": "Hardware",
+    "driver_type": "Hardware",
+    "driver_mode": "Hardware",
+    "printer_profile": "Motion",
+    "profile_review": "Motion",
+    "kinematics": "Motion",
+    "x_volume": "Motion",
+    "y_volume": "Motion",
+    "z_volume": "Motion",
+    "x_limits": "Motion",
+    "y_limits": "Motion",
+    "z_limits": "Motion",
+    "probe": "Sensors",
+    "bltouch_pins": "Sensors",
+    "probe_offsets": "Sensors",
+    "hotend_therm": "Sensors",
+    "bed_therm": "Sensors",
+    "display": "Software",
+    "web_ui": "Software",
+}
+
+PHASE_KEYS = {
+    "Hardware": "wizard.phase.hardware",
+    "Motion": "wizard.phase.motion",
+    "Sensors": "wizard.phase.sensors",
+    "Software": "wizard.phase.software",
+}
+
+PHASE_ORDER = ["Hardware", "Motion", "Sensors", "Software"]
+
+def _get_active_phase_steps(phase: str, user_data: dict) -> list:
+    """Dynamically determine which steps in the given phase are active/visible."""
+    all_steps = [step_id for step_id, p in PHASE_MAP.items() if p == phase]
+    active = []
+    for step_id in all_steps:
+        if step_id == "fan_assignment":
+            if not _has_fan_options(user_data):
+                continue
+        elif step_id == "z_socket_assignment":
+            z_motors = user_data.get("z_motors")
+            if z_motors is None or int(z_motors) <= 1:
+                continue
+        elif step_id == "driver_mode":
+            d_type = user_data.get("driver_type")
+            if d_type in ["None (Standard)", "A4988", "DRV8825"]:
+                continue
+        elif step_id == "profile_review":
+            if not user_data.get("profile_loaded"):
+                continue
+        elif step_id == "kinematics":
+            if "kinematics" in user_data.get("_authoritative", set()):
+                continue
+        elif step_id == "x_volume":
+            if "x_size" in user_data.get("_authoritative", set()):
+                continue
+        elif step_id == "y_volume":
+            if "y_size" in user_data.get("_authoritative", set()):
+                continue
+        elif step_id == "z_volume":
+            if "z_size" in user_data.get("_authoritative", set()):
+                continue
+        elif step_id == "x_limits":
+            if "x_position_min" in user_data.get("_authoritative", set()):
+                continue
+        elif step_id == "y_limits":
+            if "y_position_min" in user_data.get("_authoritative", set()):
+                continue
+        elif step_id == "z_limits":
+            if "z_position_min" in user_data.get("_authoritative", set()):
+                continue
+        elif step_id == "probe_offsets":
+            probe = user_data.get("probe")
+            if probe is None or probe == "None":
+                continue
+        elif step_id == "hotend_therm":
+            if "hotend_thermistor" in user_data.get("_authoritative", set()):
+                continue
+        elif step_id == "bed_therm":
+            if "bed_thermistor" in user_data.get("_authoritative", set()):
+                continue
+        active.append(step_id)
+    return active
+
+def _print_step_header(step_id: str, user_data: dict) -> None:
+    """Print a visually rich step header box in stdout if quiet/auto mode is not enabled."""
+    if os.environ.get("KACE_TESTING") == "1":
+        return
+    if os.environ.get("KACE_AUTO") == "1":
+        return
+    if os.environ.get("KACE_QUIET") == "1":
+        return
+
+    phase = PHASE_MAP.get(step_id)
+    if not phase:
+        return
+
+    # Translate phase name
+    phase_key = PHASE_KEYS.get(phase)
+    translated_phase = t(phase_key) if phase_key else phase
+
+    # Get active steps in phase
+    active_steps = _get_active_phase_steps(phase, user_data)
+    try:
+        step_idx = active_steps.index(step_id) + 1
+    except ValueError:
+        step_idx = 1
+    total_steps = len(active_steps)
+
+    # Get header and hint translations
+    header_key = f"wizard.step.{step_id}.header"
+    hint_key = f"wizard.step.{step_id}.hint"
+    header_text = t(header_key)
+    hint_text = t(hint_key)
+
+    # Styling colors
+    C_BORDER = "\033[36m"   # Cyan border
+    C_PHASE = "\033[1;96m"  # Bold Cyan phase name
+    C_STEP = "\033[1;92m"   # Bold Green step counter
+    C_HEADER = "\033[1;97m" # Bold White step header
+    C_HINT = "\033[37m"     # Light gray hint
+    C_RESET = "\033[0m"
+
+    lbl_phase = t("wizard.phase_label") or "Phase"
+    lbl_step = t("wizard.step_label") or "Step"
+    lbl_of = t("wizard.of_label") or "of"
+
+    # Print the beautiful UI block
+    box_width = 72
+    print(f"\n{C_BORDER}┌" + "─" * (box_width - 2) + f"┐{C_RESET}")
+    
+    # Phase & Step progress line
+    content = f"{lbl_phase}: {translated_phase} | {lbl_step} {step_idx} {lbl_of} {total_steps}"
+    padding_len = box_width - 4 - len(content)
+    left_padding = padding_len // 2
+    right_padding = padding_len - left_padding
+    print(f"{C_BORDER}│ {C_RESET}{' ' * left_padding}{C_PHASE}{lbl_phase}: {translated_phase}{C_RESET} | {C_STEP}{lbl_step} {step_idx} {lbl_of} {total_steps}{C_RESET}{' ' * right_padding} {C_BORDER}│{C_RESET}")
+    
+    print(f"{C_BORDER}├" + "─" * (box_width - 2) + f"┤{C_RESET}")
+    
+    # Header line
+    header_line = f"  {header_text}"
+    header_padding = box_width - 4 - len(header_line)
+    if header_padding > 0:
+        print(f"{C_BORDER}│ {C_HEADER}{header_line}{C_RESET}{' ' * header_padding} {C_BORDER}│{C_RESET}")
+    else:
+        print(f"{C_BORDER}│ {C_HEADER}{header_line[:box_width-4]}{C_RESET} {C_BORDER}│{C_RESET}")
+        
+    # Hint line(s) (word wrap to fit box_width - 4)
+    words = hint_text.split()
+    lines = []
+    current_line = "  "
+    for word in words:
+        if len(current_line) + len(word) + 1 <= box_width - 4:
+            if current_line == "  ":
+                current_line += word
+            else:
+                current_line += " " + word
+        else:
+            lines.append(current_line)
+            current_line = "  " + word
+    if current_line.strip():
+        lines.append(current_line)
+        
+    for line in lines:
+        line_padding = box_width - 4 - len(line)
+        print(f"{C_BORDER}│ {C_HINT}{line}{C_RESET}{' ' * line_padding} {C_BORDER}│{C_RESET}")
+        
+    print(f"{C_BORDER}└" + "─" * (box_width - 2) + f"┘{C_RESET}\n")
+
 
 def _back_choice():
     return {"name": t("choice.back"), "value": _BACK}
@@ -110,7 +284,7 @@ def get_current_board_parsed(user_data) -> dict:
         return {}
     return parse_config(raw, user_data.get("board") or "", keep_comments=True)
 
-def print_detected_profile_summary(defaults: dict, parsed: dict) -> None:
+def print_detected_profile_summary(defaults: dict, parsed: dict, user_data: dict = None) -> None:
     """Print detected profile as a clean information screen.
 
     Layout:
@@ -124,7 +298,14 @@ def print_detected_profile_summary(defaults: dict, parsed: dict) -> None:
 
     All Klipper educational comments are mandatory on every value line.
     """
-    print(f"\n\033[92m{t('profile.detected_header')}\033[0m")
+    is_custom = False
+    if user_data:
+        is_custom = user_data.get("printer_profile") == "Custom / Scratch Build"
+    elif defaults:
+        is_custom = defaults.get("printer_profile") == "Custom / Scratch Build"
+
+    header_key = "profile.custom_header" if is_custom else "profile.detected_header"
+    print(f"\n\033[92m{t(header_key)}\033[0m")
 
     def print_val(label: str, val: str, comment_key: str) -> None:
         comment = t(comment_key)
@@ -134,7 +315,7 @@ def print_detected_profile_summary(defaults: dict, parsed: dict) -> None:
     # ── Motion System ─────────────────────────────────────────────────────────
     kinematics = parsed.get('printer', {}).get('kinematics') or defaults.get('kinematics')
     has_any_axis = any(
-        parsed.get(f'stepper_{a}', {}).get(k) is not None
+        parsed.get(f'stepper_{a}', {}).get(k) is not None or (is_custom and defaults.get(f'{a}_{k}') is not None)
         for a in ['x', 'y', 'z']
         for k in ('position_min', 'position_max', 'position_endstop')
     )
@@ -153,9 +334,9 @@ def print_detected_profile_summary(defaults: dict, parsed: dict) -> None:
             sec = f'stepper_{axis}'
             axis_data = parsed.get(sec, {})
             axis_rows = [
-                (f"{axis.upper()} position_min:",     axis_data.get('position_min'),     f"profile.comment_position_min_{axis}"),
-                (f"{axis.upper()} position_max:",     axis_data.get('position_max'),     f"profile.comment_position_max_{axis}"),
-                (f"{axis.upper()} position_endstop:", axis_data.get('position_endstop'), f"profile.comment_position_endstop_{axis}"),
+                (f"{axis.upper()} position_min:",     axis_data.get('position_min') or (defaults.get(f'{axis}_position_min') if is_custom else None),     f"profile.comment_position_min_{axis}"),
+                (f"{axis.upper()} position_max:",     axis_data.get('position_max') or (defaults.get(f'{axis}_position_max') if is_custom else None),     f"profile.comment_position_max_{axis}"),
+                (f"{axis.upper()} position_endstop:", axis_data.get('position_endstop') or (defaults.get(f'{axis}_position_endstop') if is_custom else None), f"profile.comment_position_endstop_{axis}"),
             ]
             if any(v is not None for _, v, _ in axis_rows):
                 for label, val, comment_key in axis_rows:
@@ -175,8 +356,8 @@ def print_detected_profile_summary(defaults: dict, parsed: dict) -> None:
         print("")
 
     # ── Thermistors ───────────────────────────────────────────────────────────
-    hotend_therm = parsed.get('extruder', {}).get('sensor_type')
-    bed_therm = parsed.get('heater_bed', {}).get('sensor_type')
+    hotend_therm = parsed.get('extruder', {}).get('sensor_type') or (defaults.get('hotend_thermistor') if is_custom else None)
+    bed_therm = parsed.get('heater_bed', {}).get('sensor_type') or (defaults.get('bed_thermistor') if is_custom else None)
     if hotend_therm or bed_therm:
         print("  \033[96mThermistors\033[0m")
         print("  \033[96m───────────\033[0m")
@@ -210,7 +391,7 @@ def _step_profile_review_inner(defaults: dict, parsed: dict, user_data: dict) ->
     Returns 'confirm' or 'back'.
     """
     while True:
-        print_detected_profile_summary(defaults, parsed)
+        print_detected_profile_summary(defaults, parsed, user_data)
 
         action = questionary.select(
             t("wizard.profile_review_prompt"),
@@ -326,9 +507,15 @@ def _step_profile_editor_inner(defaults: dict, parsed: dict, user_data: dict) ->
                 {"name": t("choice.save_continue"),            "value": "save"},
                 {"name": t("choice.editor_kinematics"),        "value": "kinematics"},
                 {"name": t("choice.editor_volume"),            "value": "volume"},
-                {"name": t("choice.editor_x_limits"),          "value": "x_limits"},
-                {"name": t("choice.editor_y_limits"),          "value": "y_limits"},
-                {"name": t("choice.editor_z_limits"),          "value": "z_limits"},
+                {"name": t("choice.editor_x_min"),             "value": "x_position_min"},
+                {"name": t("choice.editor_x_max"),             "value": "x_position_max"},
+                {"name": t("choice.editor_x_endstop"),         "value": "x_position_endstop"},
+                {"name": t("choice.editor_y_min"),             "value": "y_position_min"},
+                {"name": t("choice.editor_y_max"),             "value": "y_position_max"},
+                {"name": t("choice.editor_y_endstop"),         "value": "y_position_endstop"},
+                {"name": t("choice.editor_z_min"),             "value": "z_position_min"},
+                {"name": t("choice.editor_z_max"),             "value": "z_position_max"},
+                {"name": t("choice.editor_z_endstop"),         "value": "z_position_endstop"},
                 {"name": t("choice.editor_hotend_thermistor"), "value": "hotend_thermistor"},
                 {"name": t("choice.editor_bed_thermistor"),    "value": "bed_thermistor"},
                 {"name": t("choice.back_discard"),              "value": "back"},
@@ -380,53 +567,42 @@ def _step_profile_editor_inner(defaults: dict, parsed: dict, user_data: dict) ->
                         staged_parsed.setdefault('stepper_y', {})['position_max'] = new_y
                         staged_parsed.setdefault('stepper_z', {})['position_max'] = new_z
 
-        elif prop == "x_limits":
-            new_min = questionary.text("Enter X position_min (mm):", default=str(x_min), style=custom_style).ask()
-            if new_min is not None and validate_float(new_min):
-                new_max = questionary.text("Enter X position_max (mm):", default=str(x_max), style=custom_style).ask()
-                if new_max is not None and validate_float(new_max):
-                    new_end = questionary.text("Enter X position_endstop (mm):", default=str(x_end), style=custom_style).ask()
-                    if new_end is not None and validate_float(new_end):
-                        for k, v in [("x_position_min", new_min), ("x_position_max", new_max),
-                                     ("x_position_endstop", new_end), ("x_size", new_max)]:
-                            staged_user_data[k] = v
-                            staged_defaults[k] = v
-                        sx = staged_parsed.setdefault('stepper_x', {})
-                        sx['position_min'] = new_min
-                        sx['position_max'] = new_max
-                        sx['position_endstop'] = new_end
-
-        elif prop == "y_limits":
-            new_min = questionary.text("Enter Y position_min (mm):", default=str(y_min), style=custom_style).ask()
-            if new_min is not None and validate_float(new_min):
-                new_max = questionary.text("Enter Y position_max (mm):", default=str(y_max), style=custom_style).ask()
-                if new_max is not None and validate_float(new_max):
-                    new_end = questionary.text("Enter Y position_endstop (mm):", default=str(y_end), style=custom_style).ask()
-                    if new_end is not None and validate_float(new_end):
-                        for k, v in [("y_position_min", new_min), ("y_position_max", new_max),
-                                     ("y_position_endstop", new_end), ("y_size", new_max)]:
-                            staged_user_data[k] = v
-                            staged_defaults[k] = v
-                        sy = staged_parsed.setdefault('stepper_y', {})
-                        sy['position_min'] = new_min
-                        sy['position_max'] = new_max
-                        sy['position_endstop'] = new_end
-
-        elif prop == "z_limits":
-            new_min = questionary.text("Enter Z position_min (mm):", default=str(z_min), style=custom_style).ask()
-            if new_min is not None and validate_float(new_min):
-                new_max = questionary.text("Enter Z position_max (mm):", default=str(z_max), style=custom_style).ask()
-                if new_max is not None and validate_float(new_max):
-                    new_end = questionary.text("Enter Z position_endstop (mm):", default=str(z_end), style=custom_style).ask()
-                    if new_end is not None and validate_float(new_end):
-                        for k, v in [("z_position_min", new_min), ("z_position_max", new_max),
-                                     ("z_position_endstop", new_end), ("z_size", new_max)]:
-                            staged_user_data[k] = v
-                            staged_defaults[k] = v
-                        sz = staged_parsed.setdefault('stepper_z', {})
-                        sz['position_min'] = new_min
-                        sz['position_max'] = new_max
-                        sz['position_endstop'] = new_end
+        elif prop in ("x_position_min", "x_position_max", "x_position_endstop",
+                      "y_position_min", "y_position_max", "y_position_endstop",
+                      "z_position_min", "z_position_max", "z_position_endstop"):
+            # Extract axis (x, y, z) and field (position_min, position_max, position_endstop)
+            axis = prop.split("_")[0]
+            field = prop.replace(f"{axis}_", "")
+            
+            # Map current value
+            val_map = {
+                "x_position_min": x_min, "x_position_max": x_max, "x_position_endstop": x_end,
+                "y_position_min": y_min, "y_position_max": y_max, "y_position_endstop": y_end,
+                "z_position_min": z_min, "z_position_max": z_max, "z_position_endstop": z_end,
+            }
+            curr_val = val_map[prop]
+            
+            new_val = questionary.text(
+                f"Enter {axis.upper()} {field} (mm):",
+                default=str(curr_val),
+                validate=questionary_numeric_validator,
+                style=custom_style
+            ).ask()
+            
+            if new_val is not None and new_val.strip().lower() not in ("<", "back", "volver", ""):
+                val_clean = new_val.strip()
+                staged_user_data[prop] = val_clean
+                staged_defaults[prop] = val_clean
+                
+                # Update staged_parsed
+                sx = staged_parsed.setdefault(f"stepper_{axis}", {})
+                sx[field] = val_clean
+                
+                # Synchronization: if position_max changes, update _size
+                if field == "position_max":
+                    size_key = f"{axis}_size"
+                    staged_user_data[size_key] = val_clean
+                    staged_defaults[size_key] = val_clean
 
         elif prop == "hotend_thermistor":
             th_choices = list(THERMISTOR_PRESETS) + ["Other (Manual Entry)"]
@@ -472,6 +648,8 @@ class WizardRunner:
         self.history_stack = []
         self.snapshots = {}
         self.user_data = initial_data if initial_data is not None else {}
+        self.last_step_id = None
+        self.completed_phases = set()
 
     def run(self, start_step_id):
         current_id = start_step_id
@@ -481,6 +659,22 @@ class WizardRunner:
             
             # Take snapshot before executing the step
             self.snapshots[current_id] = copy.deepcopy(self.user_data)
+            
+            # Detect forward transitions between phases
+            current_phase = PHASE_MAP.get(current_id)
+            if self.last_step_id:
+                last_phase = PHASE_MAP.get(self.last_step_id)
+                if last_phase and current_phase and last_phase != current_phase:
+                    if PHASE_ORDER.index(current_phase) > PHASE_ORDER.index(last_phase):
+                        if last_phase not in self.completed_phases:
+                            self.completed_phases.add(last_phase)
+                            if os.environ.get("KACE_AUTO") != "1" and os.environ.get("KACE_QUIET") != "1":
+                                last_phase_key = PHASE_KEYS.get(last_phase)
+                                translated_last_phase = t(last_phase_key) if last_phase_key else last_phase
+                                print(f"\033[92m{t('wizard.phase.complete', phase=translated_last_phase)}\033[0m")
+            
+            # Print the header orientation box for the step
+            _print_step_header(current_id, self.user_data)
             
             try:
                 ans = step_cfg["prompt"](self.user_data)
@@ -500,6 +694,7 @@ class WizardRunner:
                 
             if current_id not in self.history_stack:
                 self.history_stack.append(current_id)
+            self.last_step_id = current_id
                 
             next_func = step_cfg.get("next")
             if next_func:
@@ -529,6 +724,12 @@ class WizardRunner:
         for sid in list(self.snapshots.keys()):
             if sid not in active_steps:
                 self.snapshots.pop(sid, None)
+                
+        self.last_step_id = self.history_stack[-1] if self.history_stack else None
+        target_phase = PHASE_MAP.get(step_id)
+        if target_phase in PHASE_ORDER:
+            target_idx = PHASE_ORDER.index(target_phase)
+            self.completed_phases = {p for p in self.completed_phases if PHASE_ORDER.index(p) < target_idx}
 
     def get_default_next(self, step_id):
         try:
@@ -552,13 +753,15 @@ def run_wizard(user_data_arg=None):
     so kace.py only handles file generation and deployment after the wizard
     returns a fully-populated user_data.
     """
-    print("\033[96m>>> Starting Hardware Discovery...\033[0m")
+    if os.environ.get("KACE_AUTO") != "1" and os.environ.get("KACE_QUIET") != "1":
+        print("\033[2m  Starting Hardware Discovery...\033[0m")
     mcu_context = discover_mcu()
     mcu_path = mcu_context.get("mcu_path")
     detected_mcu = mcu_context.get("derived_mcu")
     mcu_hint = mcu_context.get("hint")
 
-    print("\033[96m>>> Fetching board database...\033[0m")
+    if os.environ.get("KACE_AUTO") != "1" and os.environ.get("KACE_QUIET") != "1":
+        print("\033[2m  Fetching board database...\033[0m")
     boards = fetch_config_list()
 
     printer_configs = [b for b in boards if b.startswith("printer-")]
@@ -647,7 +850,11 @@ def run_wizard(user_data_arg=None):
         "x_volume",
         "y_volume",
         "z_volume",
+        "x_limits",
+        "y_limits",
+        "z_limits",
         "probe",
+        "bltouch_pins",
         "probe_offsets",
         "hotend_therm",
         "bed_therm",
@@ -704,9 +911,24 @@ def run_wizard(user_data_arg=None):
         "z_volume": {
             "prompt": lambda ud: _step_volume(ud, "z_size", "z_position_max", t("wizard.z_volume"))
         },
+        "x_limits": {
+            "prompt": lambda ud: _step_x_limits(ud)
+        },
+        "y_limits": {
+            "prompt": lambda ud: _step_y_limits(ud)
+        },
+        "z_limits": {
+            "prompt": lambda ud: _step_z_limits(ud)
+        },
         "probe": {
             "prompt": lambda ud: _step_probe(ud),
-            "next":   lambda ans, ud: "hotend_therm" if ans == "None" else "probe_offsets"
+            "next":   lambda ans, ud: "hotend_therm" if ans == "None" else (
+                "bltouch_pins" if ans in ("BLTouch", "CR-Touch") and _needs_bltouch_pins(ud) else "probe_offsets"
+            )
+        },
+        "bltouch_pins": {
+            "prompt": lambda ud: _step_bltouch_pins(ud),
+            "next":   lambda ans, ud: "probe_offsets"
         },
         "probe_offsets": {
             "prompt": lambda ud: _step_probe_offsets(ud)
@@ -951,7 +1173,9 @@ def _step_board(user_data, suggested_configs, board_configs):
     """
     choices = []
     if suggested_configs:
+        choices.append(questionary.Separator(f"── {t('wizard.select_board_suggested')} ──"))
         choices.extend(suggested_configs)
+        choices.append(questionary.Separator("──────────────────────────────────────────────────"))
     choices.extend([
         {"name": t("choice.search_manually"), "value": "__search__"},
         _back_choice(),
@@ -1000,22 +1224,41 @@ def _step_printer_profile(user_data, printer_configs):
     Returns the profile name, 'Custom / Scratch Build', or '__retry__'.
     """
     custom_choice_str = t("choice.custom_scratch")
-    choices = [custom_choice_str] + printer_configs
-    ans = questionary.autocomplete(
-        t("wizard.select_printer_model"),
+    search_choice_str = t("choice.search_manually")
+    
+    choices = [
+        {"name": f"✨  {custom_choice_str}", "value": "custom"},
+        {"name": f"🔍  {search_choice_str}", "value": "search"},
+        _back_choice(),
+        _quit_choice(),
+    ]
+
+    ans = questionary.select(
+        t("wizard.select_printer_model_menu"),
         choices=choices,
         style=custom_style
     ).ask()
 
-    if ans is None:
+    if ans == _QUIT or ans is None:
         raise WizardExit()
+    if ans == _BACK:
+        return _BACK
 
-    if ans == custom_choice_str:
+    if ans == "custom":
         user_data["printer_profile"] = "Custom / Scratch Build"
         user_data["profile_loaded"]  = False
         user_data.pop("_profile_parsed", None)
         user_data.pop("_profile_defaults", None)
-        return ans
+        return "Custom / Scratch Build"
+
+    if ans == "search":
+        ans = questionary.autocomplete(
+            t("wizard.select_printer_model"),
+            choices=printer_configs,
+            style=custom_style
+        ).ask()
+        if ans is None:
+            return "__retry__"
 
     print(f"\n\033[96m>>> Loading defaults for {ans}...\033[0m")
     raw = fetch_raw_config(ans)
@@ -1031,7 +1274,7 @@ def _step_printer_profile(user_data, printer_configs):
             user_data["profile_loaded"]  = False
             user_data.pop("_profile_parsed", None)
             user_data.pop("_profile_defaults", None)
-            return ans
+            return "Custom / Scratch Build"
         return "__retry__"
 
     user_data["printer_profile"] = ans
@@ -1218,16 +1461,165 @@ def _step_volume(user_data, size_key, max_key, msg_text):
         return user_data[size_key]
     ans = questionary.text(
         msg_text,
-        default=user_data[size_key],
+        default=str(user_data.get(size_key) or ""),
+        validate=questionary_pos_numeric_validator,
         style=custom_style
     ).ask()
-    if ans is None:
+    if ans is None or ans.strip().lower() in ("<", "back", "volver"):
         return _BACK
-    old_val = user_data[size_key]
-    user_data[size_key] = ans
-    if user_data.get(max_key) == old_val:
-        user_data[max_key] = ans
-    return ans
+    val_clean = ans.strip()
+    old_val = user_data.get(size_key)
+    user_data[size_key] = val_clean
+    if user_data.get(max_key) == old_val or not user_data.get(max_key):
+        user_data[max_key] = val_clean
+    return val_clean
+
+def _step_x_limits(user_data):
+    prompts = ["min", "max", "endstop"]
+    idx = 0
+    while idx < len(prompts):
+        curr = prompts[idx]
+        if curr == "min":
+            val = questionary.text(
+                t("wizard.x_position_min") or "Enter X position_min (mm) [type '<' to go back]:",
+                default=str(user_data.get("x_position_min") if user_data.get("x_position_min") is not None else "0"),
+                validate=questionary_numeric_validator,
+                style=custom_style
+            ).ask()
+            if val is None:
+                raise WizardExit()
+            if val.strip().lower() in ("<", "back", "volver"):
+                return _BACK
+            user_data["x_position_min"] = val.strip()
+            idx += 1
+        elif curr == "max":
+            val = questionary.text(
+                t("wizard.x_position_max") or "Enter X position_max (mm) [type '<' to go back]:",
+                default=str(user_data.get("x_position_max") or user_data.get("x_size") or "235"),
+                validate=questionary_numeric_validator,
+                style=custom_style
+            ).ask()
+            if val is None:
+                raise WizardExit()
+            if val.strip().lower() in ("<", "back", "volver"):
+                idx -= 1
+                continue
+            user_data["x_position_max"] = val.strip()
+            user_data["x_size"] = val.strip()
+            idx += 1
+        elif curr == "endstop":
+            val = questionary.text(
+                t("wizard.x_position_endstop") or "Enter X position_endstop (mm) [type '<' to go back]:",
+                default=str(user_data.get("x_position_endstop") if user_data.get("x_position_endstop") is not None else "0"),
+                validate=questionary_numeric_validator,
+                style=custom_style
+            ).ask()
+            if val is None:
+                raise WizardExit()
+            if val.strip().lower() in ("<", "back", "volver"):
+                idx -= 1
+                continue
+            user_data["x_position_endstop"] = val.strip()
+            idx += 1
+    return "done"
+
+def _step_y_limits(user_data):
+    prompts = ["min", "max", "endstop"]
+    idx = 0
+    while idx < len(prompts):
+        curr = prompts[idx]
+        if curr == "min":
+            val = questionary.text(
+                t("wizard.y_position_min") or "Enter Y position_min (mm) [type '<' to go back]:",
+                default=str(user_data.get("y_position_min") if user_data.get("y_position_min") is not None else "0"),
+                validate=questionary_numeric_validator,
+                style=custom_style
+            ).ask()
+            if val is None:
+                raise WizardExit()
+            if val.strip().lower() in ("<", "back", "volver"):
+                return _BACK
+            user_data["y_position_min"] = val.strip()
+            idx += 1
+        elif curr == "max":
+            val = questionary.text(
+                t("wizard.y_position_max") or "Enter Y position_max (mm) [type '<' to go back]:",
+                default=str(user_data.get("y_position_max") or user_data.get("y_size") or "235"),
+                validate=questionary_numeric_validator,
+                style=custom_style
+            ).ask()
+            if val is None:
+                raise WizardExit()
+            if val.strip().lower() in ("<", "back", "volver"):
+                idx -= 1
+                continue
+            user_data["y_position_max"] = val.strip()
+            user_data["y_size"] = val.strip()
+            idx += 1
+        elif curr == "endstop":
+            val = questionary.text(
+                t("wizard.y_position_endstop") or "Enter Y position_endstop (mm) [type '<' to go back]:",
+                default=str(user_data.get("y_position_endstop") if user_data.get("y_position_endstop") is not None else "0"),
+                validate=questionary_numeric_validator,
+                style=custom_style
+            ).ask()
+            if val is None:
+                raise WizardExit()
+            if val.strip().lower() in ("<", "back", "volver"):
+                idx -= 1
+                continue
+            user_data["y_position_endstop"] = val.strip()
+            idx += 1
+    return "done"
+
+def _step_z_limits(user_data):
+    prompts = ["min", "max", "endstop"]
+    idx = 0
+    while idx < len(prompts):
+        curr = prompts[idx]
+        if curr == "min":
+            val = questionary.text(
+                t("wizard.z_position_min") or "Enter Z position_min (mm) [type '<' to go back]:",
+                default=str(user_data.get("z_position_min") if user_data.get("z_position_min") is not None else "0"),
+                validate=questionary_numeric_validator,
+                style=custom_style
+            ).ask()
+            if val is None:
+                raise WizardExit()
+            if val.strip().lower() in ("<", "back", "volver"):
+                return _BACK
+            user_data["z_position_min"] = val.strip()
+            idx += 1
+        elif curr == "max":
+            val = questionary.text(
+                t("wizard.z_position_max") or "Enter Z position_max (mm) [type '<' to go back]:",
+                default=str(user_data.get("z_position_max") or user_data.get("z_size") or "250"),
+                validate=questionary_numeric_validator,
+                style=custom_style
+            ).ask()
+            if val is None:
+                raise WizardExit()
+            if val.strip().lower() in ("<", "back", "volver"):
+                idx -= 1
+                continue
+            user_data["z_position_max"] = val.strip()
+            user_data["z_size"] = val.strip()
+            idx += 1
+        elif curr == "endstop":
+            val = questionary.text(
+                t("wizard.z_position_endstop") or "Enter Z position_endstop (mm) [type '<' to go back]:",
+                default=str(user_data.get("z_position_endstop") if user_data.get("z_position_endstop") is not None else "0"),
+                validate=questionary_numeric_validator,
+                style=custom_style
+            ).ask()
+            if val is None:
+                raise WizardExit()
+            if val.strip().lower() in ("<", "back", "volver"):
+                idx -= 1
+                continue
+            user_data["z_position_endstop"] = val.strip()
+            idx += 1
+    return "done"
 
 def _step_probe(user_data):
     ans = questionary.select(
@@ -1240,6 +1632,307 @@ def _step_probe(user_data):
     if ans == _BACK: return _BACK
     user_data["probe"] = ans
     return ans
+
+def _needs_bltouch_pins(user_data) -> bool:
+    parsed_board = get_current_board_parsed(user_data)
+    blt = parsed_board.get("bltouch", {})
+    s_pin = blt.get("sensor_pin")
+    c_pin = blt.get("control_pin")
+
+    def is_missing(p):
+        if not p:
+            return True
+        p_clean = str(p).strip().upper().lstrip('^!~')
+        return p_clean == "TODO" or p_clean == ""
+
+    return is_missing(s_pin) or is_missing(c_pin)
+
+def _get_mcu_for_board(board_name: str) -> str:
+    if not board_name:
+        return ""
+    try:
+        from core.loader import load_boards_yaml
+        db = load_boards_yaml()
+        board_lower = board_name.lower()
+        for entry in db.get('boards', []):
+            mcu = entry.get('mcu', '')
+            search_terms = entry.get('search_terms', [])
+            for term in search_terms:
+                if term.lower() in board_lower:
+                    return mcu
+    except Exception:
+        pass
+    return ""
+
+def _get_unused_pins(user_data) -> list:
+    """Scan parsed board config for all used pins, and return a list of typical unused microcontroller pins."""
+    import re
+    parsed_board = get_current_board_parsed(user_data)
+    
+    # Collect all used pins in the config
+    used_pins = set()
+    pin_pattern = re.compile(r'^[!^~]*([A-Za-z0-9_.]+)$')
+    for section, sdata in parsed_board.items():
+        if isinstance(sdata, dict):
+            for key, val in sdata.items():
+                if isinstance(val, str):
+                    match = pin_pattern.match(val.strip())
+                    if match:
+                        used_pins.add(match.group(1).lower())
+                    
+    # Let's get the MCU
+    board_name = user_data.get("board", "")
+    mcu = _get_mcu_for_board(board_name)
+    if not mcu:
+        mcu = user_data.get("mcu_type", "").lower()
+    else:
+        mcu = mcu.lower()
+        
+    # We can also get all pins mentioned in aliases
+    board_pins = parsed_board.get("board_pins", {})
+    aliases_str = board_pins.get("aliases", "") if isinstance(board_pins, dict) else ""
+    all_alias_pins = {}
+    if aliases_str:
+        # e.g. EXP1_1=PB5, EXP1_2=PB6
+        for part in aliases_str.replace('\n', ',').split(','):
+            if '=' in part:
+                parts = part.split('=', 1)
+                alias_name = parts[0].strip()
+                target_pin = parts[1].strip().lstrip('!^~')
+                if target_pin:
+                    all_alias_pins[target_pin.lower()] = alias_name
+                    
+    # Generate list of candidate pins based on MCU type
+    all_mcu_pins = []
+    if "1284" in mcu or "atmega1284" in mcu:
+        # Melzi / AVR 1284p
+        all_mcu_pins = [f"PA{i}" for i in range(8)] + [f"PB{i}" for i in range(8)] + [f"PC{i}" for i in range(8)] + [f"PD{i}" for i in range(8)]
+    elif "2560" in mcu or "atmega2560" in mcu:
+        all_mcu_pins = [f"PA{i}" for i in range(8)] + [f"PB{i}" for i in range(8)] + [f"PC{i}" for i in range(8)] + [f"PD{i}" for i in range(8)] + \
+                       [f"PE{i}" for i in range(8)] + [f"PF{i}" for i in range(8)] + [f"PG{i}" for i in range(6)] + [f"PH{i}" for i in range(8)] + \
+                       [f"PJ{i}" for i in range(8)] + [f"PK{i}" for i in range(8)] + [f"PL{i}" for i in range(8)]
+    elif "stm32" in mcu:
+        all_mcu_pins = [f"PA{i}" for i in range(16)] + [f"PB{i}" for i in range(16)] + [f"PC{i}" for i in range(16)] + [f"PD{i}" for i in range(16)] + \
+                       [f"PE{i}" for i in range(16)] + [f"PF{i}" for i in range(16)] + [f"PG{i}" for i in range(16)] + [f"PH{i}" for i in range(16)]
+    elif "rp2040" in mcu:
+        all_mcu_pins = [f"gpio{i}" for i in range(30)]
+    elif "lpc176" in mcu:
+        all_mcu_pins = [f"P0.{i}" for i in range(32)] + [f"P1.{i}" for i in range(32)] + [f"P2.{i}" for i in range(14)]
+        
+    unused = []
+    # First, let's suggest EXP alias pins that are not used
+    for pin_lower, alias in all_alias_pins.items():
+        if pin_lower not in used_pins:
+            unused.append((alias, pin_lower.upper()))
+            
+    # Then suggest raw unused MCU pins
+    for pin in all_mcu_pins:
+        if pin.lower() not in used_pins and pin.lower() not in all_alias_pins:
+            unused.append((pin, pin.upper()))
+            
+    return unused
+
+def make_pin_validator_with_collision_check(user_data):
+    import re
+    parsed_board = get_current_board_parsed(user_data)
+    
+    # Pre-build a map of pin -> component name
+    pin_pattern = re.compile(r'^[!^~]*([A-Za-z0-9_.]+)$')
+    used_pins_map = {}
+    aliases = []
+    
+    if isinstance(parsed_board, dict):
+        # Extract aliases from [board_pins]
+        board_pins = parsed_board.get("board_pins", {})
+        aliases_str = board_pins.get("aliases", "") if isinstance(board_pins, dict) else ""
+        if aliases_str:
+            for part in aliases_str.replace('\n', ',').split(','):
+                if '=' in part:
+                    alias_name = part.split('=', 1)[0].strip()
+                    if alias_name:
+                        aliases.append(alias_name)
+                        
+        for section, sdata in parsed_board.items():
+            if isinstance(sdata, dict):
+                for key, val in sdata.items():
+                    if isinstance(val, str):
+                        match = pin_pattern.match(val.strip())
+                        if match:
+                            pin_name = match.group(1).upper()
+                            comp = section
+                            if section.startswith("stepper_"):
+                                comp = f"stepper {section.replace('stepper_', '').upper()}"
+                            used_pins_map[pin_name] = f"{comp} ({key})"
+
+    def validator(value: str):
+        val_strip = value.strip()
+        val_lower = val_strip.lower()
+        if val_lower in ("<", "back", "volver"):
+            return True
+            
+        # Standard format check first
+        fmt_res = questionary_pin_validator(val_strip)
+        if fmt_res != True:
+            return fmt_res
+            
+        # Collision check
+        match = pin_pattern.match(val_strip)
+        if not match:
+            return "Invalid Klipper pin format"
+            
+        pin_name = match.group(1).upper()
+        if pin_name in used_pins_map:
+            lang = get_lang()
+            comp_info = used_pins_map[pin_name]
+            if lang == "Español":
+                return f"El pin {pin_name} ya está en uso por: {comp_info}"
+            elif lang == "Português":
+                return f"O pino {pin_name} já está em uso por: {comp_info}"
+            else:
+                return f"Pin {pin_name} is already in use by: {comp_info}"
+                
+        # MCU specific physical pin checks
+        board_name = user_data.get("board", "")
+        mcu = _get_mcu_for_board(board_name)
+        if not mcu:
+            mcu = user_data.get("mcu_type", "").lower()
+        else:
+            mcu = mcu.lower()
+            
+        if mcu:
+            pin_clean = pin_name.lower()
+            
+            # Check if it is a defined board alias
+            is_alias = False
+            for alias in aliases:
+                if pin_clean == alias.lower():
+                    is_alias = True
+                    break
+                    
+            if not is_alias:
+                # Validate against MCU architecture specs
+                if "1284" in mcu or "atmega1284" in mcu:
+                    if not re.match(r'^p[a-d][0-7]$', pin_clean):
+                        lang = get_lang()
+                        if lang == "Español":
+                            return f"Pin inválido para ATMEGA1284P. Debe ser tipo PA0-PD7 (ej. PA5)."
+                        elif lang == "Português":
+                            return f"Pino inválido para ATMEGA1284P. Deve ser tipo PA0-PD7 (ex. PA5)."
+                        else:
+                            return f"Invalid pin for ATMEGA1284P. Must be PA0-PD7 (e.g. PA5)."
+                            
+                elif "2560" in mcu or "atmega2560" in mcu or mcu == "avr":
+                    if not (re.match(r'^p[a-l][0-7]$', pin_clean) or re.match(r'^(ar|analog)\d+$', pin_clean)):
+                        lang = get_lang()
+                        if lang == "Español":
+                            return f"Pin inválido para AVR/ATMEGA2560. Debe ser tipo PA0-PL7 o ar0-ar69."
+                        elif lang == "Português":
+                            return f"Pino inválido para AVR/ATMEGA2560. Deve ser tipo PA0-PL7 ou ar0-ar69."
+                        else:
+                            return f"Invalid pin for AVR/ATMEGA2560. Must be PA0-PL7 or ar0-ar69."
+                            
+                elif "stm32" in mcu:
+                    if not re.match(r'^p[a-i](1[0-5]|\d)$', pin_clean):
+                        lang = get_lang()
+                        if lang == "Español":
+                            return f"Pin inválido para STM32. Debe ser tipo PA0-PI15 (ej. PB7)."
+                        elif lang == "Português":
+                            return f"Pino inválido para STM32. Deve ser tipo PA0-PI15 (ex. PB7)."
+                        else:
+                            return f"Invalid pin for STM32. Must be PA0-PI15 (e.g. PB7)."
+                            
+                elif "rp2040" in mcu:
+                    if not re.match(r'^gpio(2[0-9]|[0-1]?\d)$', pin_clean):
+                        lang = get_lang()
+                        if lang == "Español":
+                            return f"Pin inválido para RP2040. Debe ser tipo gpio0-gpio29."
+                        elif lang == "Português":
+                            return f"Pino inválido para RP2040. Deve ser tipo gpio0-gpio29."
+                        else:
+                            return f"Invalid pin for RP2040. Must be gpio0-gpio29."
+                            
+                elif "lpc176" in mcu:
+                    if not re.match(r'^p[0-4]\.(3[0-1]|[0-2]?\d)$', pin_clean):
+                        lang = get_lang()
+                        if lang == "Español":
+                            return f"Pin inválido para LPC176x. Debe ser tipo P0.0-P4.29 (ej. P0.10)."
+                        elif lang == "Português":
+                            return f"Pino inválido para LPC176x. Deve ser tipo P0.0-P4.29 (ex. P0.10)."
+                        else:
+                            return f"Invalid pin for LPC176x. Must be P0.0-P4.29 (e.g. P0.10)."
+                            
+        return True
+        
+    return validator
+
+def _step_bltouch_pins(user_data):
+    parsed_board = get_current_board_parsed(user_data)
+    blt = parsed_board.get("bltouch", {})
+    missing_sensor = not blt.get("sensor_pin")
+    missing_control = not blt.get("control_pin")
+    
+    if os.environ.get("KACE_AUTO") != "1" and os.environ.get("KACE_QUIET") != "1":
+        board_name = user_data.get("board", "")
+        unused = _get_unused_pins(user_data)
+        lang = get_lang()
+        if lang == "Español":
+            msg = f"\n[!] Se seleccionó BLTouch/CR-Touch pero se desconoce el mapa de pines para la placa:\n    {board_name}\n"
+            msg += "    Ingrese los pines manualmente a continuación (puedes escribir '<' o 'volver' para regresar).\n"
+            if unused:
+                suggested_str = ", ".join([f"{u[0]}" for u in unused[:6]])
+                msg += f"    Pines no asignados que podrían estar libres: {suggested_str}\n"
+        elif lang == "Português":
+            msg = f"\n[!] BLTouch/CR-Touch selecionado, mas o mapeamento de pinos é desconhecido para a placa:\n    {board_name}\n"
+            msg += "    Insira os pinos manualmente abaixo (digite '<' ou 'voltar' para retornar).\n"
+            if unused:
+                suggested_str = ", ".join([f"{u[0]}" for u in unused[:6]])
+                msg += f"    Pinos não atribuídos que podem estar livres: {suggested_str}\n"
+        else:
+            msg = f"\n[!] BLTouch/CR-Touch selected but pin mapping is unknown for board:\n    {board_name}\n"
+            msg += "    Enter the pins manually below (you can type '<' or 'back' to go back).\n"
+            if unused:
+                suggested_str = ", ".join([f"{u[0]}" for u in unused[:6]])
+                msg += f"    Unassigned pins that might be free: {suggested_str}\n"
+        print(msg)
+
+    prompts = []
+    if missing_sensor:
+        prompts.append("sensor")
+    if missing_control:
+        prompts.append("control")
+        
+    idx = 0
+    while idx < len(prompts):
+        current_prompt = prompts[idx]
+        if current_prompt == "sensor":
+            sp = questionary.text(
+                t("wizard.bltouch_sensor_prompt") or "BLTouch sensor_pin (e.g. ^PB7 or ^PC5):",
+                default=user_data.get("bltouch_sensor_pin") or "",
+                validate=make_pin_validator_with_collision_check(user_data),
+                style=custom_style
+            ).ask()
+            if sp is None or sp.strip().lower() in ("<", "back", "volver"):
+                return _BACK
+            user_data["bltouch_sensor_pin"] = sp.strip()
+            idx += 1
+            
+        elif current_prompt == "control":
+            cp = questionary.text(
+                t("wizard.bltouch_control_prompt") or "BLTouch control_pin (e.g. PB6 or PE5):",
+                default=user_data.get("bltouch_control_pin") or "",
+                validate=make_pin_validator_with_collision_check(user_data),
+                style=custom_style
+            ).ask()
+            if cp is None or cp.strip().lower() in ("<", "back", "volver"):
+                if idx > 0:
+                    idx -= 1
+                    continue
+                else:
+                    return _BACK
+            user_data["bltouch_control_pin"] = cp.strip()
+            idx += 1
+            
+    return "done"
 
 def _step_probe_offsets(user_data):
     offset_result = run_probe_offset_step(

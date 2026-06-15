@@ -39,6 +39,11 @@ UI_STRINGS: dict = {
         "Español":   "Seleccione el modelo de impresora (escriba para buscar) [Ctrl+C para volver]:",
         "Português": "Selecione o modelo de impressora (digite para buscar) [Ctrl+C para voltar]:",
     },
+    "wizard.select_printer_model_menu": {
+        "English":   "Select your Printer Model:",
+        "Español":   "Seleccione su modelo de impresora:",
+        "Português": "Selecione o modelo de impressora:",
+    },
     "wizard.select_board": {
         "English":   "Select your Board:",
         "Español":   "Seleccione su placa:",
@@ -108,6 +113,21 @@ UI_STRINGS: dict = {
         "English":   "Select Probe Type:",
         "Español":   "Seleccione el Tipo de Sensor:",
         "Português": "Selecione o Tipo de Sensor:",
+    },
+    "wizard.bltouch_sensor_prompt": {
+        "English":   "BLTouch sensor_pin (e.g. ^PB7 or ^PC5):",
+        "Español":   "Pin de sensor de BLTouch (ej. ^PB7 o ^PC5):",
+        "Português": "Pino do sensor do BLTouch (ex. ^PB7 ou ^PC5):",
+    },
+    "wizard.bltouch_control_prompt": {
+        "English":   "BLTouch control_pin (e.g. PB6 or PE5):",
+        "Español":   "Pin de control de BLTouch (ej. PB6 o PE5):",
+        "Português": "Pino de controle do BLTouch (ex. PB6 ou PE5):",
+    },
+    "wizard.bltouch_unknown_pins_warn": {
+        "English":   "\n[!] BLTouch/CR-Touch selected but pin mapping is unknown for:\n    {board}\n    Enter the pins manually below (check your board's wiring diagram).\n    Example — Octopus Pro: sensor_pin=^PB7  control_pin=PB6\n",
+        "Español":   "\n[!] Se seleccionó BLTouch/CR-Touch pero se desconoce el mapa de pines para:\n    {board}\n    Ingrese los pines manualmente a continuación (consulte el diagrama de cableado de su placa).\n    Ejemplo — Octopus Pro: sensor_pin=^PB7  control_pin=PB6\n",
+        "Português":   "\n[!] BLTouch/CR-Touch selecionado, mas o mapeamento de pinos é desconhecido para:\n    {board}\n    Insira os pinos manualmente abaixo (verifique o diagrama de fiação da sua placa).\n    Exemplo — Octopus Pro: sensor_pin=^PB7  control_pin=PB6\n",
     },
     "wizard.probe_x_offset": {
         "English":   "Probe X offset from nozzle (mm, e.g. -38 or 0):",
@@ -306,9 +326,9 @@ UI_STRINGS: dict = {
         "Português": "✓  Continuar",
     },
     "choice.edit_profile": {
-        "English":   "⚙  Edit Profile",
-        "Español":   "⚙  Editar Perfil",
-        "Português": "⚙  Editar Perfil",
+        "English":   "✎  Edit Profile",
+        "Español":   "✎  Editar Perfil",
+        "Português": "✎  Editar Perfil",
     },
     "choice.arrow_back": {
         "English":   "◀  Back",
@@ -345,20 +365,50 @@ UI_STRINGS: dict = {
         "Español":   " 2. Volumen de Construcción",
         "Português": " 2. Volume de Impressão",
     },
-    "choice.editor_x_limits": {
-        "English":   "3-5. X Axis Limits",
-        "Español":   "3-5. Límites del Eje X",
-        "Português": "3-5. Limites do Eixo X",
+    "choice.editor_x_min": {
+        "English":   " 3. X position_min",
+        "Español":   " 3. X position_min",
+        "Português": " 3. X position_min",
     },
-    "choice.editor_y_limits": {
-        "English":   "6-8. Y Axis Limits",
-        "Español":   "6-8. Límites del Eje Y",
-        "Português": "6-8. Limites do Eixo Y",
+    "choice.editor_x_max": {
+        "English":   " 4. X position_max",
+        "Español":   " 4. X position_max",
+        "Português": " 4. X position_max",
     },
-    "choice.editor_z_limits": {
-        "English":   "9-11. Z Axis Limits",
-        "Español":   "9-11. Límites del Eje Z",
-        "Português": "9-11. Limites do Eixo Z",
+    "choice.editor_x_endstop": {
+        "English":   " 5. X position_endstop",
+        "Español":   " 5. X position_endstop",
+        "Português": " 5. X position_endstop",
+    },
+    "choice.editor_y_min": {
+        "English":   " 6. Y position_min",
+        "Español":   " 6. Y position_min",
+        "Português": " 6. Y position_min",
+    },
+    "choice.editor_y_max": {
+        "English":   " 7. Y position_max",
+        "Español":   " 7. Y position_max",
+        "Português": " 7. Y position_max",
+    },
+    "choice.editor_y_endstop": {
+        "English":   " 8. Y position_endstop",
+        "Español":   " 8. Y position_endstop",
+        "Português": " 8. Y position_endstop",
+    },
+    "choice.editor_z_min": {
+        "English":   " 9. Z position_min",
+        "Español":   " 9. Z position_min",
+        "Português": " 9. Z position_min",
+    },
+    "choice.editor_z_max": {
+        "English":   "10. Z position_max",
+        "Español":   "10. Z position_max",
+        "Português": "10. Z position_max",
+    },
+    "choice.editor_z_endstop": {
+        "English":   "11. Z position_endstop",
+        "Español":   "11. Z position_endstop",
+        "Português": "11. Z position_endstop",
     },
     "choice.editor_hotend_thermistor": {
         "English":   "12. Hotend Thermistor",
@@ -1243,6 +1293,31 @@ UI_STRINGS: dict = {
         "Português": "tipo de interface da tela LCD",
     },
     # ── Display Compatibility Layer strings ─────────────────────
+    "display.class_fully_compatible": {
+        "English":   "Fully Compatible",
+        "Español":   "Totalmente compatible",
+        "Português": "Totalmente compatível",
+    },
+    "display.class_compatible_with_adapter": {
+        "English":   "Compatible with Adapter",
+        "Español":   "Compatible con adaptador",
+        "Português": "Compatível com adaptador",
+    },
+    "display.class_compatible_with_adapter_mod": {
+        "English":   "Compatible with Adapter/Modification",
+        "Español":   "Compatible con adaptador/modificación",
+        "Português": "Compatível com adaptador/modificação",
+    },
+    "display.class_experimental": {
+        "English":   "Experimental",
+        "Español":   "Experimental",
+        "Português": "Experimental",
+    },
+    "display.class_unsafe": {
+        "English":   "UNSAFE / HIGH RISK",
+        "Español":   "INSEGURO / ALTO RIESGO",
+        "Português": "INSEGURO / ALTO RISCO",
+    },
     "display.warning_header": {
         "English":   "⚠️  Display Compatibility Warning",
         "Español":   "⚠️  Advertencia de Compatibilidad de Pantalla",
@@ -1378,6 +1453,318 @@ UI_STRINGS: dict = {
         "English":   "Confidence: {level}",
         "Español":   "Confianza: {level}",
         "Português": "Confiança: {level}",
+    },
+    "wizard.phase_label": {
+        "English":   "Phase",
+        "Español":   "Fase",
+        "Português": "Fase",
+    },
+    "wizard.step_label": {
+        "English":   "Step",
+        "Español":   "Paso",
+        "Português": "Passo",
+    },
+    "wizard.of_label": {
+        "English":   "of",
+        "Español":   "de",
+        "Português": "de",
+    },
+    # ── Phase names ───────────────────────────────────────────
+    "wizard.phase.hardware": {
+        "English":   "Hardware",
+        "Español":   "Hardware",
+        "Português": "Hardware",
+    },
+    "wizard.phase.motion": {
+        "English":   "Motion",
+        "Español":   "Movimiento",
+        "Português": "Movimento",
+    },
+    "wizard.phase.sensors": {
+        "English":   "Sensors",
+        "Español":   "Sensores",
+        "Português": "Sensores",
+    },
+    "wizard.phase.software": {
+        "English":   "Software",
+        "Español":   "Software",
+        "Português": "Software",
+    },
+    "wizard.phase.complete": {
+        "English":   "✔ Phase complete: {phase}",
+        "Español":   "✔ Fase completada: {phase}",
+        "Português": "✔ Fase concluída: {phase}",
+    },
+    # ── Wizard step headers and context hints ──────────────────
+    "wizard.step.board.header": {
+        "English":   "Motherboard Selection",
+        "Español":   "Selección de Placa Base",
+        "Português": "Seleção da Placa-Mãe",
+    },
+    "wizard.step.board.hint": {
+        "English":   "The motherboard defines the microcontroller unit (MCU) and available socket/pin configurations.",
+        "Español":   "La placa base define la unidad de microcontrolador (MCU) y las configuraciones de pines/sockets disponibles.",
+        "Português": "A placa-mãe define a unidade de microcontrolador (MCU) e as configurações de pinos/soquetes disponíveis.",
+    },
+    "wizard.step.fan_assignment.header": {
+        "English":   "Cooling Fan Pins Assignment",
+        "Español":   "Asignación de Pines de Ventiladores",
+        "Português": "Atribuição de Pinos de Ventiladores",
+    },
+    "wizard.step.fan_assignment.hint": {
+        "English":   "Define cooling fan output pins to prevent extruder heat creep and ensure proper part cooling.",
+        "Español":   "Defina los pines de salida de los ventiladores para evitar el calor en el extrusor y garantizar el enfriamiento de la pieza.",
+        "Português": "Defina os pinos de saída dos ventiladores para evitar refluxo de calor no extrusor e garantir o resfriamento da peça.",
+    },
+    "wizard.step.z_motors.header": {
+        "English":   "Z Axis Motors Count",
+        "Español":   "Cantidad de Motores del Eje Z",
+        "Português": "Quantidade de Motores do Eixo Z",
+    },
+    "wizard.step.z_motors.hint": {
+        "English":   "Selecting the correct number of Z-axis motors allows independent control and auto-leveling adjustment.",
+        "Español":   "Seleccionar la cantidad correcta de motores del eje Z permite el control independiente y el ajuste de autonivelación.",
+        "Português": "Selecionar a quantidade correta de motores do eixo Z permite controle independente e ajuste de nivelamento automático.",
+    },
+    "wizard.step.z_socket_assignment.header": {
+        "English":   "Z Driver Socket Assignment",
+        "Español":   "Asignación de Sockets de Driver Z",
+        "Português": "Atribuição de Soquetes de Driver Z",
+    },
+    "wizard.step.z_socket_assignment.hint": {
+        "English":   "Assign physical driver sockets on the motherboard for multi-motor Z-axis layouts.",
+        "Español":   "Asigne sockets físicos de driver en la placa base para diseños de múltiples motores del eje Z.",
+        "Português": "Atribua soquetes físicos de driver na placa-mãe para layouts de múltiplos motores do eixo Z.",
+    },
+    "wizard.step.driver_type.header": {
+        "English":   "Stepper Driver Type",
+        "Español":   "Tipo de Driver de Motores",
+        "Português": "Tipo de Driver de Motores",
+    },
+    "wizard.step.driver_type.hint": {
+        "English":   "Specifying the correct stepper driver type guarantees accurate motor current and step generation.",
+        "Español":   "Especificar el tipo correcto de driver garantiza una corriente de motor y generación de pasos precisas.",
+        "Português": "Especificar o tipo correto de driver garante corrente de motor e geração de passos precisas.",
+    },
+    "wizard.step.driver_mode.header": {
+        "English":   "Stepper Communication Mode",
+        "Español":   "Modo de Comunicación del Driver",
+        "Português": "Modo de Comunicação do Driver",
+    },
+    "wizard.step.driver_mode.hint": {
+        "English":   "Choose between Standalone, UART, or SPI to configure active driver current control and diagnostics.",
+        "Español":   "Elija entre Standalone, UART o SPI para configurar el control de corriente activo y los diagnósticos del driver.",
+        "Português": "Escolha entre Standalone, UART ou SPI para configurar o controle de corrente ativo e os diagnósticos do driver.",
+    },
+    "wizard.step.printer_profile.header": {
+        "English":   "Printer Profile Selection",
+        "Español":   "Selección de Perfil de Impresora",
+        "Português": "Seleção de Perfil da Impressora",
+    },
+    "wizard.step.printer_profile.hint": {
+        "English":   "Choose a pre-defined printer profile to load recommended kinematic limits and dimensions.",
+        "Español":   "Elija un perfil de impresora predefinido para cargar las dimensiones y límites cinemáticos recomendados.",
+        "Português": "Escolha um perfil de impressora predefinido para carregar os limites e dimensões cinemáticas recomendados.",
+    },
+    "wizard.step.profile_review.header": {
+        "English":   "Profile Configuration Review",
+        "Español":   "Revisión de la Configuración del Perfil",
+        "Português": "Revisão da Configuração do Perfil",
+    },
+    "wizard.step.profile_review.hint": {
+        "English":   "Review and customize the loaded printer parameters before continuing with the wizard.",
+        "Español":   "Revise y personalice los parámetros de la impresora cargados antes de continuar con el asistente.",
+        "Português": "Revise e personalize os parâmetros da impressora carregados antes de continuar com o assistente.",
+    },
+    "wizard.step.kinematics.header": {
+        "English":   "Kinematics Type",
+        "Español":   "Tipo de Cinemática",
+        "Português": "Tipo de Cinemática",
+    },
+    "wizard.step.kinematics.hint": {
+        "English":   "Kinematics define how motor rotation translates into mechanical printhead positioning.",
+        "Español":   "La cinemática define cómo la rotación del motor se traduce en el posicionamiento mecánico del cabezal de impresión.",
+        "Português": "A cinemática define como a rotação do motor se traduz no posicionamento mecânico do cabeçote de impressão.",
+    },
+    "wizard.step.x_volume.header": {
+        "English":   "X Axis Build Volume",
+        "Español":   "Volumen de Construcción del Eje X",
+        "Português": "Volume de Impressão do Eixo X",
+    },
+    "wizard.step.x_volume.hint": {
+        "English":   "The maximum physical travel of the printhead along the horizontal X axis.",
+        "Español":   "El recorrido físico máximo del cabezal de impresión a lo largo del eje horizontal X.",
+        "Português": "O curso físico máximo do cabeçote de impressão ao longo do eixo horizontal X.",
+    },
+    "wizard.step.y_volume.header": {
+        "English":   "Y Axis Build Volume",
+        "Español":   "Volumen de Construcción del Eje Y",
+        "Português": "Volume de Impressão do Eixo Y",
+    },
+    "wizard.step.y_volume.hint": {
+        "English":   "The maximum physical travel of the print bed or printhead along the Y axis.",
+        "Español":   "El recorrido físico máximo de la cama o cabezal de impresión a lo largo del eje Y.",
+        "Português": "O curso físico máximo da mesa ou cabeçote de impressão ao longo do eixo Y.",
+    },
+    "wizard.step.z_volume.header": {
+        "English":   "Z Axis Build Volume",
+        "Español":   "Volumen de Construcción del Eje Z",
+        "Português": "Volume de Impressão do Eixo Z",
+    },
+    "wizard.step.z_volume.hint": {
+        "English":   "The maximum height the printer can print along the vertical Z axis.",
+        "Español":   "La altura máxima que la impresora puede imprimir a lo largo del eje vertical Z.",
+        "Português": "A altura máxima que a impressora pode imprimir ao longo do eixo vertical Z.",
+    },
+    "wizard.step.probe.header": {
+        "English":   "Z Probe Type",
+        "Español":   "Tipo de Sensor de Nivelación Z",
+        "Português": "Tipo de Sensor de Nivelamento Z",
+    },
+    "wizard.step.probe.hint": {
+        "English":   "Choose the sensor type used to automatically measure and align the print bed height.",
+        "Español":   "Elija el tipo de sensor utilizado para medir y alinear automáticamente la altura de la cama.",
+        "Português": "Escolha o tipo de sensor usado para medir e alinhar automaticamente a altura da mesa.",
+    },
+    "wizard.step.bltouch_pins.header": {
+        "English":   "BLTouch/CR-Touch Pin Assignment",
+        "Español":   "Asignación de Pines de BLTouch/CR-Touch",
+        "Português": "Atribuição de Pinos do BLTouch/CR-Touch",
+    },
+    "wizard.step.bltouch_pins.hint": {
+        "English":   "Enter the physical control and sensor pins connected to the BLTouch or CR-Touch device.",
+        "Español":   "Ingrese los pines físicos de control y sensor conectados al dispositivo BLTouch o CR-Touch.",
+        "Português": "Insira os pinos físicos de controle e sensor conectados ao dispositivo BLTouch ou CR-Touch.",
+    },
+    "wizard.step.probe_offsets.header": {
+        "English":   "Probe Offsets",
+        "Español":   "Desplazamientos del Sensor (Offsets)",
+        "Português": "Deslocamentos do Sensor (Offsets)",
+    },
+    "wizard.step.probe_offsets.hint": {
+        "English":   "Probe offsets define the physical distance in millimeters between the probe sensor and the nozzle tip.",
+        "Español":   "Los desplazamientos definen la distancia física en milímetros entre el sensor y la punta de la boquilla.",
+        "Português": "Os deslocamentos definem a distância física em milímetros entre o sensor e a ponta do bico.",
+    },
+    "wizard.step.x_limits.header": {
+        "English":   "X Axis Travel Limits",
+        "Español":   "Límites de Recorrido del Eje X",
+        "Português": "Limites de Curso do Eixo X",
+    },
+    "wizard.step.x_limits.hint": {
+        "English":   "Specify X axis physical travel boundaries (position_min, position_max) and the home endstop trigger coordinate.",
+        "Español":   "Especifique los límites físicos de recorrido del eje X (position_min, position_max) y la coordenada de activación del final de carrera.",
+        "Português": "Especifique os limites físicos de curso do eixo X (position_min, position_max) e a coordenada do sensor de fim de curso.",
+    },
+    "wizard.step.y_limits.header": {
+        "English":   "Y Axis Travel Limits",
+        "Español":   "Límites de Recorrido del Eje Y",
+        "Português": "Limites de Curso do Eixo Y",
+    },
+    "wizard.step.y_limits.hint": {
+        "English":   "Specify Y axis physical travel boundaries (position_min, position_max) and the home endstop trigger coordinate.",
+        "Español":   "Especifique los límites físicos de recorrido del eje Y (position_min, position_max) y la coordenada de activación del final de carrera.",
+        "Português": "Especifique os limites físicos de curso do eixo Y (position_min, position_max) e a coordenada do sensor de fim de curso.",
+    },
+    "wizard.step.z_limits.header": {
+        "English":   "Z Axis Travel Limits",
+        "Español":   "Límites de Recorrido del Eje Z",
+        "Português": "Limites de Curso do Eixo Z",
+    },
+    "wizard.step.z_limits.hint": {
+        "English":   "Specify Z axis physical travel boundaries (position_min, position_max) and the home endstop trigger coordinate.",
+        "Español":   "Especifique los límites físicos de recorrido del eje Z (position_min, position_max) y la coordenada de activación del final de carrera.",
+        "Português": "Especifique os limites físicos de curso do eixo Z (position_min, position_max) e a coordenada do sensor de fim de curso.",
+    },
+    "wizard.x_position_min": {
+        "English":   "Enter X position_min (mm) [type '<' to go back]:",
+        "Español":   "Ingrese X position_min (mm) [escriba '<' para volver]:",
+        "Português": "Digite X position_min (mm) [digite '<' para voltar]:",
+    },
+    "wizard.x_position_max": {
+        "English":   "Enter X position_max (mm) [type '<' to go back]:",
+        "Español":   "Ingrese X position_max (mm) [escriba '<' para volver]:",
+        "Português": "Digite X position_max (mm) [digite '<' para voltar]:",
+    },
+    "wizard.x_position_endstop": {
+        "English":   "Enter X position_endstop (mm) [type '<' to go back]:",
+        "Español":   "Ingrese X position_endstop (mm) [escriba '<' para volver]:",
+        "Português": "Digite X position_endstop (mm) [digite '<' para voltar]:",
+    },
+    "wizard.y_position_min": {
+        "English":   "Enter Y position_min (mm) [type '<' to go back]:",
+        "Español":   "Ingrese Y position_min (mm) [escriba '<' para volver]:",
+        "Português": "Digite Y position_min (mm) [digite '<' para voltar]:",
+    },
+    "wizard.y_position_max": {
+        "English":   "Enter Y position_max (mm) [type '<' to go back]:",
+        "Español":   "Ingrese Y position_max (mm) [escriba '<' para volver]:",
+        "Português": "Digite Y position_max (mm) [digite '<' para voltar]:",
+    },
+    "wizard.y_position_endstop": {
+        "English":   "Enter Y position_endstop (mm) [type '<' to go back]:",
+        "Español":   "Ingrese Y position_endstop (mm) [escriba '<' para volver]:",
+        "Português": "Digite Y position_endstop (mm) [digite '<' para voltar]:",
+    },
+    "wizard.z_position_min": {
+        "English":   "Enter Z position_min (mm) [type '<' to go back]:",
+        "Español":   "Ingrese Z position_min (mm) [escriba '<' para volver]:",
+        "Português": "Digite Z position_min (mm) [digite '<' para voltar]:",
+    },
+    "wizard.z_position_max": {
+        "English":   "Enter Z position_max (mm) [type '<' to go back]:",
+        "Español":   "Ingrese Z position_max (mm) [escriba '<' para volver]:",
+        "Português": "Digite Z position_max (mm) [digite '<' para voltar]:",
+    },
+    "wizard.z_position_endstop": {
+        "English":   "Enter Z position_endstop (mm) [type '<' to go back]:",
+        "Español":   "Ingrese Z position_endstop (mm) [escriba '<' para volver]:",
+        "Português": "Digite Z position_endstop (mm) [digite '<' para voltar]:",
+    },
+    "profile.custom_header": {
+        "English":   "Custom printer profile:",
+        "Español":   "Perfil de impresora personalizado:",
+        "Português": "Perfil da impressora personalizado:",
+    },
+    "wizard.step.hotend_therm.header": {
+        "English":   "Hotend Thermistor Model",
+        "Español":   "Modelo de Termistor del Hotend",
+        "Português": "Modelo de Termistor do Hotend",
+    },
+    "wizard.step.hotend_therm.hint": {
+        "English":   "Select the hotend sensor model to ensure safe and accurate extrusion temperature readings.",
+        "Español":   "Seleccione el modelo de sensor del hotend para garantizar lecturas de temperatura de extrusión seguras y precisas.",
+        "Português": "Selecione o modelo do sensor do hotend para garantir leituras de temperatura de extrusão seguras e precisas.",
+    },
+    "wizard.step.bed_therm.header": {
+        "English":   "Bed Thermistor Model",
+        "Español":   "Modelo de Termistor de la Cama",
+        "Português": "Modelo de Termistor da Mesa",
+    },
+    "wizard.step.bed_therm.hint": {
+        "English":   "Select the heated bed sensor model to ensure safe and accurate bed temperature readings.",
+        "Español":   "Seleccione el modelo de sensor de la cama caliente para garantizar lecturas de temperatura seguras y precisas.",
+        "Português": "Selecione o modelo do sensor da mesa aquecida para garantir leituras de temperatura seguras e precisas.",
+    },
+    "wizard.step.display.header": {
+        "English":   "Display Controller Setup",
+        "Español":   "Configuración del Controlador de Pantalla",
+        "Português": "Configuração do Controlador de Tela",
+    },
+    "wizard.step.display.hint": {
+        "English":   "Configure a physical screen attached to the printer for offline status monitoring.",
+        "Español":   "Configure una pantalla física conectada a la impresora para el monitoreo de estado fuera de línea.",
+        "Português": "Configure uma tela física conectada à impressora para monitoramento de status offline.",
+    },
+    "wizard.step.web_ui.header": {
+        "English":   "Web Interface Selection",
+        "Español":   "Selección de Interfaz Web",
+        "Português": "Seleção de Interface Web",
+    },
+    "wizard.step.web_ui.hint": {
+        "English":   "Select Mainsail or Fluidd to set up the default macros and configuration includes for web control.",
+        "Español":   "Seleccione Mainsail o Fluidd para configurar las macros predeterminadas e includes de configuración para control web.",
+        "Português": "Selecione Mainsail ou Fluidd para configurar as macros padrão e includes de configuração para controle web.",
     },
 }
 
@@ -1719,8 +2106,226 @@ def translate_comment(comment, lang):
         "motor current (A) --- manual configuration --- (check motor specs)": {
             "Español": "corriente del motor (A) --- configuración manual --- (verificar especificaciones)",
             "Português": "corrente do motor (A) --- configuração manual --- (verificar especificações)"
+        },
+        "Includes": {
+            "Español": "Componentes Incluidos",
+            "Português": "Componentes Incluídos"
+        },
+        "MCU": {
+            "Español": "MCU (Microcontrolador)",
+            "Português": "MCU (Microcontrolador)"
+        },
+        "Printer": {
+            "Español": "Impresora",
+            "Português": "Impressora"
+        },
+        "Steppers": {
+            "Español": "Motores de Paso (Steppers)",
+            "Português": "Motores de Passo (Steppers)"
+        },
+        "Probe & Bed Leveling": {
+            "Español": "Sensor y Nivelación de Cama (Probe & Bed Leveling)",
+            "Português": "Sensor e Nivelamento de Mesa (Probe & Bed Leveling)"
+        },
+        "Part Cooling Fan": {
+            "Español": "Ventilador de Capa",
+            "Português": "Ventilador de Camada"
+        },
+        "Hotend Heatsink Fan": {
+            "Español": "Ventilador del Disipador del Hotend",
+            "Português": "Ventilador do Dissipador do Hotend"
+        },
+        "Heated Bed": {
+            "Español": "Cama Caliente",
+            "Português": "Mesa Aquecida"
+        },
+        "TMC Drivers": {
+            "Español": "Controladores (Drivers) TMC",
+            "Português": "Controladores (Drivers) TMC"
+        },
+        "EXP1 / EXP2 Pinout": {
+            "Español": "Distribución de pines EXP1 / EXP2",
+            "Português": "Distribuição de pinos EXP1 / EXP2"
+        },
+        "REQUIRED CALIBRATION STEPS": {
+            "Español": "PASOS DE CALIBRACIÓN REQUERIDOS",
+            "Português": "PASSOS DE CALIBRAÇÃO REQUERIDOS"
+        },
+        "1. Calibrate extruder (rotation_distance)": {
+            "Español": "1. Calibrar extrusor (rotation_distance)",
+            "Português": "1. Calibrar extrusora (rotation_distance)"
+        },
+        "2. Run PID_CALIBRATE for hotend and bed": {
+            "Español": "2. Ejecutar PID_CALIBRATE para hotend y cama",
+            "Português": "2. Executar PID_CALIBRATE para hotend e mesa"
+        },
+        "3. Calibrate Z offset (PROBE_CALIBRATE)": {
+            "Español": "3. Calibrar el offset de Z (PROBE_CALIBRATE)",
+            "Português": "3. Calibrar o offset de Z (PROBE_CALIBRATE)"
+        },
+        "4. Verify endstops and axis directions": {
+            "Español": "4. Verificar finales de carrera y direcciones de los ejes",
+            "Português": "4. Verificar chaves de fim de curso e direções dos eixos"
+        },
+        "ADVANCED HARDWARE SECTIONS": {
+            "Español": "SECCIONES DE HARDWARE AVANZADO",
+            "Português": "SEÇÕES DE HARDWARE AVANÇADO"
+        },
+        "The sections below were detected in your board's source config.": {
+            "Español": "Las siguientes secciones fueron detectadas en la configuración original de su placa.",
+            "Português": "As seções abaixo foram detectadas na configuração de origem da sua placa."
+        },
+        "They are preserved here as commented-out blocks so you retain": {
+            "Español": "Se conservan aquí como bloques comentados para que conserve",
+            "Português": "Elas são preservadas aqui como blocos comentados para que você mantenha"
+        },
+        "the original pin data. Review each section carefully, then": {
+            "Español": "los datos de pines originales. Revise cada sección cuidadosamente, luego",
+            "Português": "os dados de pinos originais. Revise cada seção cuidadosamente, então"
+        },
+        "uncomment and adjust as needed. Do NOT uncomment without reading": {
+            "Español": "descomente y ajuste según sea necesario. NO descomente sin leer",
+            "Português": "descomente e ajuste conforme necessário. NÃO descomente sem ler"
+        },
+        "the note above each block — some require physical calibration.": {
+            "Español": "la nota sobre cada bloque — algunos requieren calibración física.",
+            "Português": "a nota acima de cada bloco — alguns requerem calibração física."
+        },
+        "Gear ratio of the axis": {
+            "Español": "Relación de transmisión del eje",
+            "Português": "Relação de transmissão del eixo"
+        },
+        "Gear ratio of the extruder": {
+            "Español": "Relación de transmisión del extrusor",
+            "Português": "Relação de transmissão da extrusora"
+        },
+        "distance from nozzle to probe in X (mm) --- set in KACE wizard --- (re-measure physically if probe is moved)": {
+            "Español": "distancia de la boquilla al sensor en X (mm) --- configurado en el asistente de KACE --- (volver a medir físicamente si se mueve el sensor)",
+            "Português": "distância do bico ao sensor em X (mm) --- configurado no assistente do KACE --- (medir fisicamente novamente se o sensor for movido)"
+        },
+        "distance from nozzle to probe in Y (mm) --- set in KACE wizard --- (re-measure physically if probe is moved)": {
+            "Español": "distancia de la boquilla al sensor en Y (mm) --- configurado en el asistente de KACE --- (volver a medir físicamente si se mueve el sensor)",
+            "Português": "distância do bico ao sensor em Y (mm) --- configurado no assistente do KACE --- (medir fisicamente novamente se o sensor for movido)"
+        },
+        "Tension of the bicubic curve": {
+            "Español": "Tensión de la curva bicúbica",
+            "Português": "Tensão da curva bicúbica"
+        },
+        "Number of points to interpolate per segment": {
+            "Español": "Número de puntos a interpolar por segmento",
+            "Português": "Número de pontos a interpolar por segmento"
+        },
+        "Adaptive margin for mesh": {
+            "Español": "Margen adaptativo para la malla",
+            "Português": "Margem adaptativa para a malha"
+        },
+        "Z height at which to start fading mesh leveling": {
+            "Español": "Altura de Z en la que comenzar a desvanecer la nivelación de malla",
+            "Português": "Altura de Z na qual iniciar o desvanecimento do nivelamento da malha"
+        },
+        "Z height at which mesh leveling is completely disabled": {
+            "Español": "Altura de Z en la que la nivelación de malla está completamente desactivada",
+            "Português": "Altura de Z na qual o nivelamento da malha é completamente desativado"
+        },
+        "Target Z offset to fade towards": {
+            "Español": "Desplazamiento Z objetivo hacia el cual desvanecer",
+            "Português": "Offset Z alvo para o qual desvanecer"
+        },
+        "Interpolation algorithm": {
+            "Español": "Algoritmo de interpolación",
+            "Português": "Algoritmo de interpolação"
+        },
+        "Probing area minimum (derived from physical limits)": {
+            "Español": "Mínimo del área de prueba (derivado de los límites físicos)",
+            "Português": "Mínimo da área de teste (derivado dos limites físicos)"
+        },
+        "Probing area maximum (derived from physical limits)": {
+            "Español": "Máximo del área de prueba (derivado de los límites físicos)",
+            "Português": "Máximo da área de teste (derivado dos limites físicos)"
+        },
+        "Note: Klipper requires nozzle coordinates (not probe coordinates) for both z_positions and points.": {
+            "Español": "Nota: Klipper requiere coordenadas de la boquilla (no del sensor) tanto para z_positions como para points.",
+            "Português": "Nota: O Klipper requer coordenadas do bico (não do sensor) tanto para z_positions quanto para points."
+        },
+        "Note: Klipper requires nozzle coordinates (not probe coordinates) for both gantry_corners and points.": {
+            "Español": "Nota: Klipper requiere coordenadas de la boquilla (no del sensor) tanto para gantry_corners como para points.",
+            "Português": "Nota: O Klipper requer coordenadas do bico (não do sensor) tanto para gantry_corners quanto para points."
+        },
+        "Locations of the gantry pivot points (nozzle coordinates)": {
+            "Español": "Ubicaciones de los puntos de pivote del pórtico (coordenadas de la boquilla)",
+            "Português": "Localizações dos pontos de pivô do pórtico (coordenadas do bico)"
+        },
+        "Pin connected to the part cooling fan": {
+            "Español": "Pin conectado al ventilador de capa",
+            "Português": "Pino conectado ao ventilador de camada"
+        },
+        "Pin connected to the part cooling fan (uncomment and set if available)": {
+            "Español": "Pin conectado al ventilador de capa (descomentar y configurar si está disponible)",
+            "Português": "Pino conectado ao ventilador de camada (descomentar e configurar se disponível)"
+        },
+        "Pin connected to the hotend heatsink fan": {
+            "Español": "Pin conectado al ventilador del disipador del hotend",
+            "Português": "Pino conectado ao ventilador do dissipador do hotend"
+        },
+        "Heater associated with this fan": {
+            "Español": "Calentador asociado con este ventilador",
+            "Português": "Aquecedor associado a este ventilador"
+        },
+        "Temperature above which the fan is enabled": {
+            "Español": "Temperatura por encima de la cual se activa el ventilador",
+            "Português": "Temperatura acima da qual o ventilador é ativado"
+        },
+        "EXP1 header": {
+            "Español": "conector EXP1",
+            "Português": "conector EXP1"
+        },
+        "EXP2 header": {
+            "Español": "conector EXP2",
+            "Português": "conector EXP2"
         }
     }
+
+    # Handle dynamic generated headers prefix-wise
+    if comment.startswith("This file was generated by KACE"):
+        if lang == "Español":
+            return "Este archivo fue generado por KACE (Klipper Automated Configuration Ecosystem)"
+        if lang == "Português":
+            return "Este arquivo foi gerado pelo KACE (Klipper Automated Configuration Ecosystem)"
+            
+    if comment.startswith("Board:"):
+        board_val = comment[6:].strip()
+        if lang == "Español":
+            return f"Placa: {board_val}"
+        if lang == "Português":
+            return f"Placa: {board_val}"
+            
+    if comment.startswith("Kinematics:"):
+        kin_val = comment[11:].strip()
+        if lang == "Español":
+            return f"Cinemática: {kin_val}"
+        if lang == "Português":
+            return f"Cinemática: {kin_val}"
+            
+    if comment.startswith("Stepper Drivers:"):
+        drv_val = comment[16:].strip()
+        if lang == "Español":
+            return f"Drivers de motores: {drv_val}"
+        if lang == "Português":
+            return f"Drivers de motores: {drv_val}"
+            
+    if comment.startswith("Probe:"):
+        probe_val = comment[6:].strip()
+        if lang == "Español":
+            return f"Sensor (Probe): {probe_val}"
+        if lang == "Português":
+            return f"Sensor (Probe): {probe_val}"
+            
+    if comment.startswith("Z Motors:"):
+        z_val = comment[9:].strip()
+        if lang == "Español":
+            return f"Motores Z: {z_val}"
+        if lang == "Português":
+            return f"Motores Z: {z_val}"
 
     # If exact match exists
     if comment in translations and lang in translations[comment]:

@@ -5,8 +5,8 @@
 <h1 align="center">🚀 KACE — Klipper Automated Configuration Ecosystem</h1>
 
 <p align="center">
-  <a href="https://github.com/3D-uy/kace-dev/actions/workflows/ci.yml">
-    <img src="https://github.com/3D-uy/kace-dev/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI">
+  <a href="https://github.com/3D-uy/kace/actions/workflows/ci.yml">
+    <img src="https://github.com/3D-uy/kace/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI">
   </a>
   <img src="https://img.shields.io/badge/version-v0.9.2-blue?style=flat-square" alt="Versión">
   <img src="https://img.shields.io/badge/configs%20validadas-192-brightgreen?style=flat-square" alt="Configs Validadas">
@@ -47,7 +47,7 @@ Un **motor inteligente de configuración y firmware** que:
 ## ⚡ Instalación en una línea
 
 ```bash
-bash <(curl -sSL https://raw.githubusercontent.com/3D-uy/kace-dev/v0.9.2/install.sh)
+bash <(curl -sSL https://raw.githubusercontent.com/3D-uy/kace/v0.9.2/install.sh)
 ```
 
 > Instala todas las dependencias, clona el repositorio (shallow + sparse) y configura el comando global `kace` automáticamente.
@@ -90,8 +90,8 @@ KACE ha sido validado contra la **biblioteca completa de configuraciones oficial
 
 | Resultado | Cantidad | Significado |
 |-----------|----------|-------------|
-| ✅ **PASS** | **172** | Parse + generación de config completados con éxito |
-| 🔵 **UNSUPPORTED** | **20** | Config usa secciones fuera del alcance actual de KACE (neopixel, adxl345) |
+| ✅ **PASS** | **192** | Parse + generación de config completados con éxito |
+| 🔵 **UNSUPPORTED** | **0** | — |
 | 🟠 **SAFE\_ABORT** | **0** | — |
 | 🔴 **FAILURE** | **0** | **Cero crashes** |
 
@@ -100,9 +100,7 @@ KACE ha sido validado contra la **biblioteca completa de configuraciones oficial
 - **Cero regresiones del parser** — output determinístico en cada ejecución
 - **10 advertencias de generación** — todas impresoras delta donde el propio Klipper incluye pines `TODO` por diseño
 
-Las configs no soportadas contienen funcionalidades fuera del alcance actual de KACE:
-controladores RGB/neopixel, expansores GPIO SX1509 o acelerómetros ADXL345.
-KACE **las reporta de forma elegante** en lugar de fallar.
+Las configuraciones con características avanzadas (RGB/neopixel, SX1509, ADXL345) ahora están totalmente soportadas mediante bloques de passthrough comentados en el archivo de salida.
 
 📄 **[Ver los resultados completos del sweep → SWEEP_RESULTS.md](../../SWEEP_RESULTS.md)**  
 Incluyendo el desglose por config de las 192 placas, impresoras y pantallas.
@@ -124,7 +122,7 @@ KACE incluye un framework de pruebas de nivel productivo construido sobre la bib
 | Pipeline CI | GitHub Actions — 5 etapas, cancelación de concurrencia, bloqueo de merge |
 
 ```
-Estado actual: 276/276 tests pasando ✅
+Estado actual: 292/292 tests pasando ✅
 ```
 
 ```bash

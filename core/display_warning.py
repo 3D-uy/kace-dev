@@ -16,7 +16,7 @@ def print_display_warning(findings: list) -> bool:
     B  = "\033[1m"    # bold
     RS = "\033[0m"    # reset
     W  = "\033[97m"   # bright white
-    M  = "\033[95m"   # magenta
+    M  = "\033[96m"   # cyan
     O  = "\033[38;5;208m" # orange for experimental
 
     _CLASS_COLORS = {
@@ -54,13 +54,10 @@ def print_display_warning(findings: list) -> bool:
         notes = finding.get("notes", [])
         sc = _CLASS_COLORS.get(comp_class, C)
 
-        class_names = {
-            "fully_compatible":        "Fully Compatible",
-            "compatible_with_adapter": "Compatible with Adapter/Modification",
-            "experimental":            "Experimental",
-            "unsafe":                  "UNSAFE / HIGH RISK",
-        }
-        status_str = class_names.get(comp_class, comp_class.upper())
+        if comp_class == "compatible_with_adapter":
+            status_str = t("display.class_compatible_with_adapter_mod")
+        else:
+            status_str = t(f"display.class_{comp_class}")
         print(f"  {B}{t('display.section_label')}:{RS} [{section}]   {sc}{B}{status_str}{RS}")
 
         if comp_class == "unsafe":

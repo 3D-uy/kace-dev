@@ -87,7 +87,7 @@ def run_firmware_wizard(user_data: dict):
     _C = "\033[96m"
     _Y = "\033[93m"
     _R = "\033[0m"
-    _M = "\033[95m"
+    _M = "\033[96m"
 
     while True:
         arch = config_dict.get("CONFIG_MCU", "Unknown").replace('"', '')
@@ -100,7 +100,7 @@ def run_firmware_wizard(user_data: dict):
 
         _SEP = "═" * 47
         def _fw_row(label, value):
-            pad = " " * max(0, 25 - len(label))
+            pad = " " * max(0, 30 - len(label))
             return f"  {_B}{_C}{label}{_R}{pad}: {_Y}{value}{_R}"
 
         print(f"\n  {_C}{_SEP}{_R}")
